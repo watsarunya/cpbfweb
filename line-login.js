@@ -88,16 +88,12 @@
     window.location.href = 'https://access.line.me/oauth2/v2.1/authorize?' + params.toString();
   }
 
-  /* ส่งออเดอร์ไป Edge Function แล้วคืนผลลัพธ์จริง ({ok, adminOk, customerOk}) หรือ null ถ้าเชื่อมต่อไม่สำเร็จ
-     customerOk === true คือหลักฐานเดียวที่ยืนยันได้ว่าลูกค้าเป็นเพื่อนกับ OA แล้วจริง */
+  /* ส่งออเดอร์ไป Edge Function แล้วคืนผลลัพธ์จริง ({ok, customerOk}) หรือ null ถ้าเชื่อมต่อไม่สำเร็จ
+     customerOk === true คือหลักฐานเดียวที่ยืนยันได้ว่าลูกค้าเป็นเพื่อนกับ OA แล้วจริง — แอดมินดูออเดอร์ได้
+     จาก LINE Official Account Manager โดยตรง (แชทเดียวกับที่ push ไปนี้เอง ไม่มีกลไกแจ้งเตือนแยกอีกจุด) */
   function sendOrder(items, profile) {
     if (!items || !items.length) return Promise.resolve(null);
-    var body = {
-      items: items,
-      lineUserId: profile.userId,
-      lineDisplayName: profile.displayName,
-      linePictureUrl: profile.pictureUrl || '',
-    };
+    var body = { items: items, lineUserId: profile.userId };
     return fetch(SEND_LINE_ORDER_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

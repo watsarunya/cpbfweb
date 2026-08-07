@@ -1,21 +1,19 @@
 // supabase/functions/send-line-order/index.ts
 // รับรายการสั่งซื้อจากเว็บไซต์ (ทุกช่องทาง: cart.html/index.html/online_shop.html/product-detail.html
-// ผ่าน line-login.js) แล้ว push ข้อความแจ้งเตือนผ่าน LINE Messaging API เข้า 2 ที่พร้อมกัน:
+// ผ่าน line-login.js) แล้ว push ข้อความยืนยันเข้าแชทจริงของลูกค้าเอง (to: lineUserId) เท่านั้น
 //
-// 1. แชทจริงของลูกค้าเอง (to: lineUserId) — ลูกค้าเห็นในแอป LINE ของตัวเองว่าสั่งซื้อไปแล้ว
-// 2. กลุ่มแอดมิน/ทีมงาน (to: LINE_ADMIN_GROUP_ID) — แอดมินทุกคนในกลุ่มเห็นออเดอร์เดียวกันพร้อมกัน (Flex
-//    Message แสดงชื่อ+รูปโปรไฟล์ของลูกค้าที่สั่ง เพราะข้อความที่ push เข้ากลุ่มได้ในนามบัญชี OA เท่านั้น
-//    ไม่สามารถทำให้ข้อความ "มาจาก" ลูกค้าจริงๆ ได้ตามข้อจำกัดของ LINE — ใส่ชื่อ+รูปในเนื้อหาแทน)
-//
-// แจ้งกลุ่มก็ต่อเมื่อ push เข้าแชทลูกค้าสำเร็จเท่านั้น (customerOk === true) เพราะการ push เข้าแชทลูกค้า
-// สำเร็จ = พิสูจน์แล้วว่าลูกค้าเป็นเพื่อนกับ OA จริง (ข้อจำกัดของ Messaging API push — ส่งได้เฉพาะคนที่เป็น
-// เพื่อนแล้วเท่านั้น) บังคับให้ทุกออเดอร์ที่แอดมินเห็นมีแชทจริงของลูกค้ารองรับเสมอ ถ้ายังไม่เพิ่มเพื่อน (หรือ
-// ไม่มี lineUserId แนบมาเลย) ฟังก์ชันนี้จะไม่ push อะไรเลยทั้งคู่ (adminOk เป็น null = ไม่ได้พยายามส่ง)
+// ⚠️ 2026-08-07: เอาการแจ้งกลุ่มแอดมิน (LINE_ADMIN_GROUP_ID, Flex Message) ออกแล้วตามที่ผู้ใช้ขอ — สาเหตุ
+// คือ LINE ไม่อนุญาตให้บอท/OA ส่งข้อความเข้ากลุ่มโดยแสดงเป็นชื่อ/บัญชีจริงของลูกค้าได้เลย (ข้อจำกัดของ
+// แพลตฟอร์ม กันการปลอมตัว) ข้อความที่บอทส่งเข้ากลุ่มจะขึ้นเป็น "ส่งโดย OA" เสมอ ทำได้แค่ใส่ชื่อ/รูปลูกค้าไว้
+// ในเนื้อหาข้อความเท่านั้น ไม่ใช่ "เหมือนลูกค้าส่งเอง" จริงๆ — ผู้ใช้เลือกใช้วิธีที่ให้ผลตรงตามที่ต้องการ
+// (แชทดูเหมือนลูกค้าส่งเองจริง 100% ตามกฎ LINE) แทน: ให้แอดมินทุกคนเข้า LINE Official Account Manager
+// (ระบบ shared inbox ของ LINE เอง) แล้วดูแชทของลูกค้าแต่ละคนโดยตรง — แชทนั้นเป็นของลูกค้าจริง 100% (เห็น
+// ชื่อ/รูปโปรไฟล์จริงตาม native ของ LINE เอง) ไม่ต้องมีกลไกเพิ่มเติมฝั่งเราเลย แค่แอดมินต้องถูกเพิ่มเป็น
+// ผู้ดูแล (operator) ของ OA ใน LINE Official Account Manager ก่อน (ตั้งค่าฝั่ง LINE ไม่ใช่โค้ด)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const LINE_CHANNEL_ACCESS_TOKEN = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN")!;
-const LINE_ADMIN_GROUP_ID = Deno.env.get("LINE_ADMIN_GROUP_ID")!;
 
 const CORS_HEADERS = { "Access-Control-Allow-Origin": "*" };
 
@@ -35,15 +33,17 @@ function buildItemLines(items: OrderItem[]) {
   return { lines, total };
 }
 
-// deno-lint-ignore no-explicit-any
-async function pushLineMessages(to: string, messages: any[]): Promise<boolean> {
+async function pushLineMessage(to: string, text: string): Promise<boolean> {
   const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ to, messages }),
+    body: JSON.stringify({
+      to,
+      messages: [{ type: "text", text }],
+    }),
   });
 
   if (!res.ok) {
@@ -52,59 +52,6 @@ async function pushLineMessages(to: string, messages: any[]): Promise<boolean> {
     return false;
   }
   return true;
-}
-
-function pushLineMessage(to: string, text: string): Promise<boolean> {
-  return pushLineMessages(to, [{ type: "text", text }]);
-}
-
-// Flex Message bubble สำหรับกลุ่มแอดมิน — โชว์รูป+ชื่อลูกค้าที่สั่งเป็น hero image/หัวการ์ด
-function buildAdminGroupFlexMessage(
-  displayName: string,
-  pictureUrl: string,
-  itemLines: string[],
-  totalLine: string,
-) {
-  const bodyContents: Record<string, unknown>[] = [
-    { type: "text", text: "🛒 มีออเดอร์ใหม่จากเว็บไซต์!", weight: "bold", size: "lg", wrap: true },
-    {
-      type: "text",
-      text: displayName ? `จาก: ${displayName}` : "จาก: ลูกค้า LINE",
-      size: "sm",
-      color: "#666666",
-      margin: "sm",
-    },
-    { type: "separator", margin: "md" },
-    {
-      type: "text",
-      text: itemLines.join("\n"),
-      wrap: true,
-      size: "sm",
-      margin: "md",
-    },
-    { type: "text", text: totalLine, weight: "bold", size: "md", margin: "md" },
-  ];
-
-  const bubble: Record<string, unknown> = {
-    type: "bubble",
-    body: { type: "box", layout: "vertical", contents: bodyContents },
-  };
-
-  if (pictureUrl) {
-    bubble.hero = {
-      type: "image",
-      url: pictureUrl,
-      size: "full",
-      aspectRatio: "1:1",
-      aspectMode: "cover",
-    };
-  }
-
-  return {
-    type: "flex",
-    altText: displayName ? `🛒 ออเดอร์ใหม่จากคุณ ${displayName}` : "🛒 มีออเดอร์ใหม่จากเว็บไซต์",
-    contents: bubble,
-  };
 }
 
 serve(async (req) => {
@@ -119,15 +66,17 @@ serve(async (req) => {
   }
 
   try {
-    const { items, lineUserId, lineDisplayName, linePictureUrl } = await req.json();
+    const { items, lineUserId } = await req.json();
     // items: [{name, qty, price, url}]
 
     const { lines, total } = buildItemLines(items);
     const totalLine = `รวมทั้งหมด: ฿${total.toLocaleString("th-TH")}`;
 
-    // ลอง push เข้าแชทจริงของลูกค้าก่อนเสมอ — สำเร็จได้ก็ต่อเมื่อลูกค้าเป็นเพื่อนกับ OA แล้วเท่านั้น
-    // (ข้อจำกัดของ Messaging API push) ใช้ผลลัพธ์นี้เป็นตัวตัดสินว่าจะแจ้งกลุ่มแอดมินหรือไม่
-    let customerOk: boolean | null = null;
+    // push เข้าแชทจริงของลูกค้าเท่านั้น — สำเร็จได้ก็ต่อเมื่อลูกค้าเป็นเพื่อนกับ OA แล้วเท่านั้น (ข้อจำกัด
+    // ของ Messaging API push) ใช้ผลลัพธ์นี้เป็นตัวบอก caller (line-login.js) ว่าควร save profile/เคลียร์
+    // ตะกร้าหรือไม่ — แอดมินดูออเดอร์ได้จาก LINE Official Account Manager โดยตรง (แชทเดียวกับที่ push ไปนี้
+    // เอง ไม่ต้องมีกลไกแจ้งเตือนแยกอีกจุด)
+    let customerOk = false;
     if (lineUserId) {
       const customerMessage = [
         "ขอบคุณสำหรับคำสั่งซื้อค่ะ/ครับ 🙏",
@@ -142,23 +91,14 @@ serve(async (req) => {
       customerOk = await pushLineMessage(lineUserId, customerMessage);
     }
 
-    // แจ้งกลุ่มแอดมินก็ต่อเมื่อพิสูจน์แล้วว่าลูกค้าเป็นเพื่อนกับ OA จริง (customerOk === true) — ถ้ายังไม่เพิ่ม
-    // เพื่อน (หรือไม่มี lineUserId มาเลย) จะไม่แจ้งกลุ่มเลย (adminOk เป็น null = ไม่ได้พยายามส่ง) — ข้อความที่
-    // เข้ากลุ่มเป็น Flex Message แสดงชื่อ+รูปโปรไฟล์ลูกค้าที่สั่ง ให้แอดมินทุกคนในกลุ่มเห็นตรงกันว่าใครสั่ง
-    let adminOk: boolean | null = null;
-    if (customerOk === true) {
-      const flexMessage = buildAdminGroupFlexMessage(lineDisplayName || "", linePictureUrl || "", lines, totalLine);
-      adminOk = await pushLineMessages(LINE_ADMIN_GROUP_ID, [flexMessage]);
-    }
-
-    if (customerOk !== true) {
-      return new Response(JSON.stringify({ ok: false, error: "ลูกค้ายังไม่ได้เพิ่มเพื่อน LINE — ไม่ได้แจ้งกลุ่มแอดมิน", adminOk, customerOk }), {
+    if (!customerOk) {
+      return new Response(JSON.stringify({ ok: false, error: "ลูกค้ายังไม่ได้เพิ่มเพื่อน LINE", customerOk }), {
         status: 200,
         headers: CORS_HEADERS,
       });
     }
 
-    return new Response(JSON.stringify({ ok: true, adminOk, customerOk }), {
+    return new Response(JSON.stringify({ ok: true, customerOk }), {
       status: 200,
       headers: CORS_HEADERS,
     });
