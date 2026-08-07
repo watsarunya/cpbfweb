@@ -20,7 +20,11 @@
    - ถ้าไม่ยืนยัน (ไม่เพิ่มเพื่อน) จะไม่ส่งออเดอร์ให้แอดมินเลย และไม่เคลียร์ตะกร้า (เหมือนไม่เคยกดสั่งซื้อ) */
 (function () {
   var LINE_LOGIN_CHANNEL_ID = '2010917401';
-  var LINE_CALLBACK_URL = 'https://cpbf.co.th/line-callback.html';
+  // ใช้โดเมนปัจจุบันเสมอ (ไม่ hardcode cpbf.co.th) เพื่อให้ทำงานได้ทั้งบนโดเมนจริงและโดเมนสำรอง
+  // (เช่น https://cpbf.vercel.app ระหว่างที่ยังตั้งค่า DNS ของ cpbf.co.th ไม่เสร็จ) — ⚠️ ทุกโดเมนที่ใช้จริง
+  // ต้องถูกเพิ่มเป็น Callback URL ใน LINE Developers Console > LINE Login channel ด้วย ไม่งั้น LINE จะปฏิเสธ
+  // redirect_uri ที่ไม่ตรงกับที่ลงทะเบียนไว้ทันที
+  var LINE_CALLBACK_URL = window.location.origin + '/line-callback.html';
   var LINE_LOGIN_EXCHANGE_ENDPOINT = 'https://gafvtbkmizxorqpmezna.supabase.co/functions/v1/line-login-exchange';
   var SEND_LINE_ORDER_ENDPOINT = 'https://gafvtbkmizxorqpmezna.supabase.co/functions/v1/send-line-order';
 
