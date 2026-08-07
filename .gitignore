@@ -1,6 +1,7 @@
 .DS_Store
 .obsidian/
 node_modules/
+supabase/.temp/
 
 # raw/assets/CI/ = ไฟล์ต้นฉบับงานออกแบบ (Illustrator/PSD/PDF ขนาดใหญ่) ไม่ได้ถูกเว็บไซต์ใช้จริง
 # ยกเว้นโลโก้ PNG ไฟล์เดียวที่ใช้ใน CMS/footer — เกิน GitHub's 100MB file limit ถ้า track ทั้งโฟลเดอร์

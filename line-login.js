@@ -92,7 +92,12 @@
      customerOk === true คือหลักฐานเดียวที่ยืนยันได้ว่าลูกค้าเป็นเพื่อนกับ OA แล้วจริง */
   function sendOrder(items, profile) {
     if (!items || !items.length) return Promise.resolve(null);
-    var body = { items: items, lineUserId: profile.userId, lineDisplayName: profile.displayName };
+    var body = {
+      items: items,
+      lineUserId: profile.userId,
+      lineDisplayName: profile.displayName,
+      linePictureUrl: profile.pictureUrl || '',
+    };
     return fetch(SEND_LINE_ORDER_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
