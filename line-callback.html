@@ -9,8 +9,10 @@
 <body>
 
 <!-- หน้าที่ LINE redirect กลับมาหลัง login (ดู line-login.js's startLineLogin) — แลก code เป็น LINE profile
-     จริงผ่าน Edge Function line-login-exchange แล้ว resume คำสั่งซื้อที่ค้างไว้ก่อน redirect (ถ้ามี) ให้
-     อัตโนมัติ ใช้ .line-order-modal__panel ซ้ำเป็นการ์ดกลางจอ (คลาสนั้นไม่ผูกกับ position:fixed เอง) -->
+     จริงผ่าน Edge Function line-login-exchange แล้ว **แสดงสรุปคำสั่งซื้อที่ค้างไว้ (ถ้ามี) ให้ผู้ใช้กด
+     "ยืนยันการสั่งซื้อ" เองก่อนเสมอ** (⚠️ 2026-08-07: เดิมเคย push ออเดอร์เข้า LINE OA อัตโนมัติทันทีที่
+     login เสร็จ — เปลี่ยนตามที่ผู้ใช้ขอ ให้ต้องกดยืนยันอีกครั้งก่อนถึงจะส่งจริง) ใช้
+     .line-order-modal__panel ซ้ำเป็นการ์ดกลางจอ (คลาสนั้นไม่ผูกกับ position:fixed เอง) -->
 <div class="line-callback-page">
   <div class="line-order-modal__panel">
     <div class="line-order-modal__icon" id="lineCallbackIcon" aria-hidden="true"></div>
@@ -20,6 +22,14 @@
     <div id="lineCallbackProfile" class="line-callback-profile" hidden>
       <img id="lineCallbackAvatar" src="" alt="" />
       <span id="lineCallbackName"></span>
+    </div>
+
+    <!-- สรุปคำสั่งซื้อที่ค้างไว้ + ปุ่มยืนยัน — แสดงเฉพาะตอนมีออเดอร์ค้างอยู่จริง (pendingOrder) รอผู้ใช้กด
+         ยืนยันก่อนถึงจะส่งเข้า LINE OA จริง (ไม่ auto-send อีกต่อไป) -->
+    <div id="lineCallbackSummary" class="line-callback-summary" hidden>
+      <ul id="lineCallbackItemList" class="line-callback-summary__list"></ul>
+      <p class="line-callback-summary__total" id="lineCallbackSummaryTotal"></p>
+      <button type="button" id="lineCallbackConfirmBtn" class="line-callback-confirm-btn">ยืนยันการสั่งซื้อ</button>
     </div>
 
     <a id="lineCallbackFriendBtn" href="https://line.me/R/ti/p/@cpbf" target="_blank" rel="noopener"
@@ -45,6 +55,10 @@
     var profileWrap = document.getElementById('lineCallbackProfile');
     var avatar = document.getElementById('lineCallbackAvatar');
     var nameEl = document.getElementById('lineCallbackName');
+    var summaryWrap = document.getElementById('lineCallbackSummary');
+    var itemList = document.getElementById('lineCallbackItemList');
+    var summaryTotal = document.getElementById('lineCallbackSummaryTotal');
+    var confirmBtn = document.getElementById('lineCallbackConfirmBtn');
     var friendBtn = document.getElementById('lineCallbackFriendBtn');
     var chatWrap = document.getElementById('lineCallbackChatLinkWrap');
     var chatLink = document.getElementById('lineCallbackChatLink');
@@ -59,6 +73,51 @@
       icon.classList.add('line-order-modal__icon--error');
       title.textContent = titleText;
       desc.textContent = descText;
+    }
+
+    function renderItemSummary(items) {
+      itemList.innerHTML = '';
+      var total = 0;
+      (items || []).forEach(function (item) {
+        var lineTotal = item.price * item.qty;
+        total += lineTotal;
+        var li = document.createElement('li');
+        li.textContent = item.name + ' × ' + item.qty + ' — ฿' + lineTotal.toLocaleString('th-TH');
+        itemList.appendChild(li);
+      });
+      summaryTotal.textContent = 'รวมทั้งหมด: ฿' + total.toLocaleString('th-TH');
+    }
+
+    // แสดงผลลัพธ์สุดท้ายหลังกดยืนยัน (หรือถ้าไม่มีออเดอร์ค้างเลยตั้งแต่แรก) — friendBtn โชว์เฉพาะตอน
+    // ยืนยันไม่สำเร็จ (ยังไม่ได้เพิ่มเพื่อน) เท่านั้น ไม่โชว์ตอนสำเร็จแล้ว (แก้บั๊กเดิมที่โชว์ตลอดไม่ว่าจะสำเร็จหรือไม่)
+    function renderOutcome(result, hasOrder) {
+      if (!hasOrder) {
+        icon.innerHTML = CHECK_ICON;
+        title.textContent = 'เข้าสู่ระบบ LINE สำเร็จ';
+        desc.textContent = 'ยินดีต้อนรับ! ตอนนี้สั่งซื้อผ่าน LINE ได้จากทุกหน้าในเว็บไซต์แล้ว';
+        return;
+      }
+
+      if (result.success) {
+        icon.innerHTML = CHECK_ICON;
+        title.textContent = 'สั่งซื้อสำเร็จ';
+        desc.textContent = 'ทีมงานของเราได้รับคำสั่งซื้อของคุณแล้ว และจะรีบติดต่อกลับโดยเร็วที่สุด';
+        if (result.lineUrl && !result.autoOpened) {
+          chatLink.href = result.lineUrl;
+          chatWrap.hidden = false;
+        }
+      } else {
+        icon.innerHTML = WARNING_ICON;
+        icon.classList.add('line-order-modal__icon--warning');
+        title.textContent = 'ยังไม่ได้รับคำสั่งซื้อของคุณ';
+        desc.textContent = 'ต้องเพิ่มเราเป็นเพื่อนใน LINE ก่อน ทีมงานถึงจะเห็นคำสั่งซื้อของคุณได้ — กดปุ่มด้านล่างเพื่อเพิ่มเพื่อน แล้วกลับไปกดสั่งซื้ออีกครั้ง';
+        friendBtn.hidden = false;
+      }
+
+      if (result.returnUrl) {
+        backLink.href = result.returnUrl;
+        backLink.textContent = result.success ? 'กลับไปยังหน้าที่แล้ว' : 'กลับไปสั่งซื้ออีกครั้ง';
+      }
     }
 
     if (!window.cpbfLineOrder) {
@@ -78,23 +137,6 @@
       return;
     }
 
-    // resumedOrder && orderSuccess === false คือเคส "login LINE สำเร็จ แต่ยังไม่ได้เพิ่มเพื่อน OA" —
-    // ออเดอร์เข้าไม่ถึงแอดมินเลย (ดู send-line-order) ต้องเพิ่มเพื่อนแล้วกลับไปกดสั่งซื้อใหม่อีกครั้ง
-    var notFriendYet = result.resumedOrder && result.orderSuccess === false;
-
-    if (notFriendYet) {
-      icon.innerHTML = WARNING_ICON;
-      icon.classList.add('line-order-modal__icon--warning');
-      title.textContent = 'ยังไม่ได้รับคำสั่งซื้อของคุณ';
-      desc.textContent = 'ต้องเพิ่มเราเป็นเพื่อนใน LINE ก่อน ทีมงานถึงจะเห็นคำสั่งซื้อของคุณได้ — กดปุ่มด้านล่างเพื่อเพิ่มเพื่อน แล้วกลับไปกดสั่งซื้ออีกครั้ง';
-    } else {
-      icon.innerHTML = CHECK_ICON;
-      title.textContent = result.resumedOrder ? 'สั่งซื้อสำเร็จ' : 'เข้าสู่ระบบ LINE สำเร็จ';
-      desc.textContent = result.resumedOrder
-        ? 'ทีมงานของเราได้รับคำสั่งซื้อของคุณแล้ว และจะรีบติดต่อกลับโดยเร็วที่สุด'
-        : 'ยินดีต้อนรับ! ตอนนี้สั่งซื้อผ่าน LINE ได้จากทุกหน้าในเว็บไซต์แล้ว';
-    }
-
     if (result.profile) {
       nameEl.textContent = result.profile.displayName || '';
       if (result.profile.pictureUrl) {
@@ -106,17 +148,28 @@
       profileWrap.hidden = false;
     }
 
-    friendBtn.hidden = false;
+    var pendingOrder = result.pendingOrder;
 
-    if (result.orderSuccess && result.lineUrl && !result.autoOpened) {
-      chatLink.href = result.lineUrl;
-      chatWrap.hidden = false;
+    if (!pendingOrder) {
+      renderOutcome(null, false);
+      return;
     }
 
-    if (result.returnUrl) {
-      backLink.href = result.returnUrl;
-      backLink.textContent = notFriendYet ? 'กลับไปสั่งซื้ออีกครั้ง' : 'กลับไปยังหน้าที่แล้ว';
-    }
+    // มีออเดอร์ค้างอยู่ — หยุดรอตรงนี้ ให้ผู้ใช้ตรวจสอบรายการแล้วกดยืนยันเองก่อนเสมอ
+    title.textContent = 'ตรวจสอบคำสั่งซื้อของคุณ';
+    desc.textContent = 'กดยืนยันเพื่อส่งคำสั่งซื้อนี้เข้า LINE ของเรา';
+    renderItemSummary(pendingOrder.items);
+    summaryWrap.hidden = false;
+
+    confirmBtn.addEventListener('click', async function () {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'กำลังส่งคำสั่งซื้อ...';
+
+      var confirmResult = await window.cpbfLineOrder.confirmPendingOrder(pendingOrder, result.profile);
+
+      summaryWrap.hidden = true;
+      renderOutcome(confirmResult, true);
+    });
   })();
 </script>
 

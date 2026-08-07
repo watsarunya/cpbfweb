@@ -158,23 +158,31 @@
     return completeLineOrder(message, items, profile);
   }
 
-  async function resumePendingOrderIfAny(profile) {
+  /* อ่านคำสั่งซื้อที่ค้างไว้ก่อน redirect ไป LINE Login (ถ้ามี) — แค่ "ดู" ไม่ส่งออเดอร์จริง ต้องรอผู้ใช้
+     กด "ยืนยันการสั่งซื้อ" ที่ line-callback.html ก่อนเสมอ (เรียก confirmPendingOrder ต่อ) ตามที่ผู้ใช้ขอ:
+     login เสร็จแล้วไม่ควร push ออเดอร์เข้า LINE OA ทันทีอัตโนมัติ ต้องให้ลูกค้ากดยืนยันอีกครั้งก่อน */
+  function peekPendingOrder() {
     var raw;
     try {
       raw = sessionStorage.getItem(PENDING_ORDER_KEY);
-      sessionStorage.removeItem(PENDING_ORDER_KEY);
     } catch (e) {
       raw = null;
     }
     if (!raw) return null;
-
-    var pending;
     try {
-      pending = JSON.parse(raw);
+      var pending = JSON.parse(raw);
+      return pending && pending.message ? pending : null;
     } catch (e) {
       return null;
     }
-    if (!pending || !pending.message) return null;
+  }
+
+  /* เรียกตอนผู้ใช้กด "ยืนยันการสั่งซื้อ" ใน line-callback.html จริงๆ เท่านั้น — ส่งออเดอร์ที่ peekPendingOrder()
+     อ่านไว้ก่อนหน้านี้ แล้วเคลียร์ออกจาก sessionStorage (ไม่ว่าผลจะสำเร็จหรือไม่ กันกดยืนยันซ้ำได้ออเดอร์ซ้ำ) */
+  async function confirmPendingOrder(pending, profile) {
+    try {
+      sessionStorage.removeItem(PENDING_ORDER_KEY);
+    } catch (e) { /* noop */ }
 
     var result = await completeLineOrder(pending.message, pending.items, profile);
 
@@ -191,9 +199,11 @@
   }
 
   /* ใช้เฉพาะใน line-callback.html — แลก code จาก LINE เป็น profile จริงผ่าน Edge Function
-     (client secret ของ LINE Login channel อยู่ฝั่ง server เท่านั้น ไม่มีวันส่งมาที่นี่) แล้ว resume
-     คำสั่งซื้อที่ค้างไว้ (ถ้ามี) ให้อัตโนมัติ — ⚠️ ไม่ save profile ที่นี่โดยตรง (save เฉพาะตอน
-     completeLineOrder ยืนยันว่า push เข้าแชทลูกค้าสำเร็จจริงเท่านั้น — ดูหมายเหตุด้านบนไฟล์) */
+     (client secret ของ LINE Login channel อยู่ฝั่ง server เท่านั้น ไม่มีวันส่งมาที่นี่) — ⚠️ ไม่ push
+     ออเดอร์อัตโนมัติที่นี่แล้ว (เดิมเคย resume/push ทันที) เปลี่ยนเป็นแค่คืน pendingOrder ให้
+     line-callback.html แสดงสรุปออเดอร์ + ปุ่ม "ยืนยันการสั่งซื้อ" ให้ผู้ใช้กดยืนยันเองก่อนเสมอ (เรียก
+     confirmPendingOrder ต่อตอนกด) — ไม่ save profile ที่นี่โดยตรงเช่นกัน (save เฉพาะตอน completeLineOrder
+     ยืนยันว่า push เข้าแชทลูกค้าสำเร็จจริงเท่านั้น — ดูหมายเหตุด้านบนไฟล์) */
   async function handleLineCallback() {
     var params = new URLSearchParams(window.location.search);
     var code = params.get('code');
@@ -241,17 +251,12 @@
     }
 
     var profile = { userId: json.userId, displayName: json.displayName, pictureUrl: json.pictureUrl || '' };
-
-    var resumed = await resumePendingOrderIfAny(profile);
+    var pendingOrder = peekPendingOrder();
 
     return {
       ok: true,
       profile: profile,
-      resumedOrder: !!resumed,
-      orderSuccess: resumed ? resumed.success : null,
-      returnUrl: resumed ? resumed.returnUrl : null,
-      lineUrl: resumed ? resumed.lineUrl : null,
-      autoOpened: resumed ? resumed.autoOpened : false,
+      pendingOrder: pendingOrder,
     };
   }
 
@@ -274,6 +279,7 @@
     openLineOrder: openLineOrder,
     getLineProfile: getLineProfile,
     handleLineCallback: handleLineCallback,
+    confirmPendingOrder: confirmPendingOrder,
   };
   window.openLineOrder = openLineOrder; // alias เดิมที่โค้ดอื่น (products-render.js ฯลฯ) เรียกตรงๆ
 })();

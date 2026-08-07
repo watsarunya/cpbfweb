@@ -1940,13 +1940,13 @@ button:focus-visible {
 
 @media (max-width: 1199px) {
   .product-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
   }
 }
 
 @media (max-width: 767px) {
   .product-section {
-    padding: 72px 20px 88px;
+    padding: 50px 20px 88px;
   }
 
   .product-heading {
@@ -1962,7 +1962,7 @@ button:focus-visible {
   /* หน้าแรก + online_shop.html (ทั้งสองหน้าใช้ id="products" ร่วมกัน คนละไฟล์): แถวละ 2 รายการแม้จอมือถือเล็ก
      ไม่กระทบ product-detail.html ("สินค้าที่น่าสนใจ" ใช้ id="relatedProducts" แยกต่างหาก ยังคง 1 คอลัมน์) */
   #products .product-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 12px;
   }
 }
@@ -2990,7 +2990,7 @@ button:focus-visible {
 ================================== */
 
 .cart-section {
-  padding: 140px 50px 80px;
+  padding:50px 80px;
   background-color: #1a1c2c;
 }
 
@@ -3337,7 +3337,7 @@ button:focus-visible {
 
 @media (max-width: 640px) {
   .cart-section {
-    padding: 120px 16px 56px;
+    padding: 50px 16px 56px;
   }
 
   .cart-layout {
@@ -5281,6 +5281,13 @@ button:focus-visible {
   margin: 0 0 20px;
 }
 
+/* [hidden] ของ browser เจอปัญหา specificity เท่ากับ .line-callback-profile/.line-callback-friend-btn
+   (ทั้งคู่ 0,1,0) แต่ author style มาทีหลังใน cascade เลยชนะ ทำให้ hidden attribute ไม่มีผลจริงถ้าไม่ประกาศ
+   [hidden] ทับตรงๆ (บั๊กแบบเดียวกับ .line-order-modal__actions[hidden]/.cms-icon-btn[hidden] ที่เจอมาก่อน) */
+.line-callback-profile[hidden] {
+  display: none;
+}
+
 .line-callback-profile img {
   width: 48px;
   height: 48px;
@@ -5291,6 +5298,59 @@ button:focus-visible {
 .line-callback-profile span {
   font-weight: 700;
   color: var(--font-title);
+}
+
+.line-callback-summary {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.line-callback-summary__list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line-callback-summary__list li {
+  font-size: 13.5px;
+  color: var(--font-desc);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-light, #eee);
+}
+
+.line-callback-summary__total {
+  margin: 0 0 16px;
+  font-weight: 700;
+  color: var(--font-title);
+  text-align: right;
+}
+
+.line-callback-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--pill-radius, 999px);
+  background-color: var(--primary-color);
+  color: var(--font-light, #fff);
+  font-family: var(--font-family);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.line-callback-confirm-btn:hover {
+  opacity: 0.9;
+}
+
+.line-callback-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .line-callback-friend-btn {
@@ -5312,6 +5372,10 @@ button:focus-visible {
 
 .line-callback-friend-btn:hover {
   background-color: var(--line-green-hover);
+}
+
+.line-callback-friend-btn[hidden] {
+  display: none;
 }
 
 .line-callback-back-link {
