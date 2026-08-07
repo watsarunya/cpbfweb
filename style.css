@@ -5248,6 +5248,32 @@ button:focus-visible {
   color: #b8770a;
 }
 
+.line-order-modal__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 8px;
+  border-radius: var(--pill-radius, 999px);
+  background-color: var(--line-green);
+  color: var(--font-light, #fff);
+  font-family: var(--font-family);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.line-order-modal__action:hover {
+  background-color: var(--line-green-hover);
+}
+
+/* [hidden] ของ browser เจอปัญหา specificity เท่ากับ .line-order-modal__action (0,1,0 ทั้งคู่) แต่ author
+   style นี้มาทีหลังใน cascade เลยชนะ ทำให้ hidden attribute ไม่มีผล (บั๊กแบบเดียวกับที่เจอมาหลายจุดในเว็บนี้) */
+.line-order-modal__action[hidden] {
+  display: none;
+}
+
 .benefit-section {
   margin: 20px 0;
   padding: 20px 5%;
@@ -5515,6 +5541,9 @@ button:focus-visible {
     .vision-title {
         font-size: 52px;
     }
+    .why-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* Mobile */
@@ -5532,5 +5561,10 @@ button:focus-visible {
     .vision-content h3 {
         font-size: 24px;
     }
+    .why-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
 
 }
