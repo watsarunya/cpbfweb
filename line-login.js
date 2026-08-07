@@ -70,11 +70,22 @@
 
     try {
       await ensureLiffReady();
+    } catch (err) {
+      console.error('liff.init() ล้มเหลว:', err);
+      showResultModal('เกิดข้อผิดพลาด', 'เชื่อมต่อ LINE ไม่สำเร็จ: ' + (err && err.message ? err.message : String(err)), true);
+      return { success: false, error: String(err) };
+    }
 
-      if (!liff.isApiAvailable('shareTargetPicker')) {
-        throw new Error('อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการส่งข้อความผ่าน LINE โดยตรง');
-      }
+    if (!liff.isApiAvailable('shareTargetPicker')) {
+      showResultModal(
+        'เกิดข้อผิดพลาด',
+        'อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับการส่งข้อความผ่าน LINE โดยตรง (shareTargetPicker ใช้งานไม่ได้) กรุณาแชทกับเราโดยตรงที่ @cpbf แทน',
+        true
+      );
+      return { success: false, error: 'shareTargetPicker not available' };
+    }
 
+    try {
       var result = await liff.shareTargetPicker([{ type: 'text', text: message }]);
       var sent = !!(result && result.status === 'success');
 
@@ -97,7 +108,7 @@
       console.error('ส่งคำสั่งซื้อผ่าน LINE ไม่สำเร็จ:', err);
       showResultModal(
         'เกิดข้อผิดพลาด',
-        'ไม่สามารถเปิดหน้าต่างส่งข้อความ LINE ได้ กรุณาลองใหม่อีกครั้ง หรือแชทกับเราโดยตรงที่ @cpbf',
+        'ไม่สามารถเปิดหน้าต่างส่งข้อความ LINE ได้: ' + (err && err.message ? err.message : String(err)) + ' — กรุณาลองใหม่อีกครั้ง หรือแชทกับเราโดยตรงที่ @cpbf',
         true
       );
       return { success: false, error: String(err) };
