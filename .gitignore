@@ -1,0 +1,12 @@
+.DS_Store
+.obsidian/
+node_modules/
+
+# raw/assets/CI/ = ไฟล์ต้นฉบับงานออกแบบ (Illustrator/PSD/PDF ขนาดใหญ่) ไม่ได้ถูกเว็บไซต์ใช้จริง
+# ยกเว้นโลโก้ PNG ไฟล์เดียวที่ใช้ใน CMS/footer — เกิน GitHub's 100MB file limit ถ้า track ทั้งโฟลเดอร์
+raw/assets/CI/*
+!raw/assets/CI/CP B&F_Logo AW/
+raw/assets/CI/CP B&F_Logo AW/*
+!raw/assets/CI/CP B&F_Logo AW/logo_Digital/
+raw/assets/CI/CP B&F_Logo AW/logo_Digital/*
+!raw/assets/CI/CP B&F_Logo AW/logo_Digital/AW_CPB&F logo RGB updated_29-10-24.png

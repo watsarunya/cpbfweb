@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>เข้าสู่ระบบ LINE — CP B&F</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- หน้าที่ LINE redirect กลับมาหลัง login (ดู line-login.js's startLineLogin) — แลก code เป็น LINE profile
+     จริงผ่าน Edge Function line-login-exchange แล้ว resume คำสั่งซื้อที่ค้างไว้ก่อน redirect (ถ้ามี) ให้
+     อัตโนมัติ ใช้ .line-order-modal__panel ซ้ำเป็นการ์ดกลางจอ (คลาสนั้นไม่ผูกกับ position:fixed เอง) -->
+<div class="line-callback-page">
+  <div class="line-order-modal__panel">
+    <div class="line-order-modal__icon" id="lineCallbackIcon" aria-hidden="true"></div>
+    <h2 class="line-order-modal__title" id="lineCallbackTitle">กำลังเข้าสู่ระบบ LINE...</h2>
+    <p class="line-order-modal__desc" id="lineCallbackDesc">กรุณารอสักครู่</p>
+
+    <div id="lineCallbackProfile" class="line-callback-profile" hidden>
+      <img id="lineCallbackAvatar" src="" alt="" />
+      <span id="lineCallbackName"></span>
+    </div>
+
+    <a id="lineCallbackFriendBtn" href="https://line.me/R/ti/p/@cpbf" target="_blank" rel="noopener"
+       class="line-callback-friend-btn" hidden>
+      เพิ่มเราเป็นเพื่อนใน LINE
+    </a>
+
+    <div class="line-order-modal__actions" id="lineCallbackChatLinkWrap" hidden>
+      <a href="#" id="lineCallbackChatLink" target="_blank" rel="noopener" class="line-order-modal__direct-link">หรือแชทกับเราต่อทาง LINE</a>
+    </div>
+
+    <a href="index.html" id="lineCallbackBackLink" class="line-callback-back-link">กลับหน้าแรก</a>
+  </div>
+</div>
+
+<script src="cart.js"></script>
+<script src="line-login.js"></script>
+<script>
+  (async function () {
+    var icon = document.getElementById('lineCallbackIcon');
+    var title = document.getElementById('lineCallbackTitle');
+    var desc = document.getElementById('lineCallbackDesc');
+    var profileWrap = document.getElementById('lineCallbackProfile');
+    var avatar = document.getElementById('lineCallbackAvatar');
+    var nameEl = document.getElementById('lineCallbackName');
+    var friendBtn = document.getElementById('lineCallbackFriendBtn');
+    var chatWrap = document.getElementById('lineCallbackChatLinkWrap');
+    var chatLink = document.getElementById('lineCallbackChatLink');
+    var backLink = document.getElementById('lineCallbackBackLink');
+
+    var CHECK_ICON = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12.3l2.6 2.6L16 9.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var ERROR_ICON = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    var WARNING_ICON = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 3.5 21.5 20h-19L12 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 10v4M12 16.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+    function showError(titleText, descText) {
+      icon.innerHTML = ERROR_ICON;
+      icon.classList.add('line-order-modal__icon--error');
+      title.textContent = titleText;
+      desc.textContent = descText;
+    }
+
+    if (!window.cpbfLineOrder) {
+      showError('เกิดข้อผิดพลาด', 'โหลดระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+
+    var result = await window.cpbfLineOrder.handleLineCallback();
+
+    if (!result.ok && result.cancelled) {
+      showError('ยกเลิกการเข้าสู่ระบบ', 'จำเป็นต้องเข้าสู่ระบบ LINE ก่อนถึงจะสั่งซื้อผ่าน LINE ได้ กรุณากดสั่งซื้ออีกครั้งเพื่อลองใหม่');
+      return;
+    }
+
+    if (!result.ok) {
+      showError('เข้าสู่ระบบไม่สำเร็จ', result.error || 'กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+
+    // resumedOrder && orderSuccess === false คือเคส "login LINE สำเร็จ แต่ยังไม่ได้เพิ่มเพื่อน OA" —
+    // ออเดอร์เข้าไม่ถึงแอดมินเลย (ดู send-line-order) ต้องเพิ่มเพื่อนแล้วกลับไปกดสั่งซื้อใหม่อีกครั้ง
+    var notFriendYet = result.resumedOrder && result.orderSuccess === false;
+
+    if (notFriendYet) {
+      icon.innerHTML = WARNING_ICON;
+      icon.classList.add('line-order-modal__icon--warning');
+      title.textContent = 'ยังไม่ได้รับคำสั่งซื้อของคุณ';
+      desc.textContent = 'ต้องเพิ่มเราเป็นเพื่อนใน LINE ก่อน ทีมงานถึงจะเห็นคำสั่งซื้อของคุณได้ — กดปุ่มด้านล่างเพื่อเพิ่มเพื่อน แล้วกลับไปกดสั่งซื้ออีกครั้ง';
+    } else {
+      icon.innerHTML = CHECK_ICON;
+      title.textContent = result.resumedOrder ? 'สั่งซื้อสำเร็จ' : 'เข้าสู่ระบบ LINE สำเร็จ';
+      desc.textContent = result.resumedOrder
+        ? 'ทีมงานของเราได้รับคำสั่งซื้อของคุณแล้ว และจะรีบติดต่อกลับโดยเร็วที่สุด'
+        : 'ยินดีต้อนรับ! ตอนนี้สั่งซื้อผ่าน LINE ได้จากทุกหน้าในเว็บไซต์แล้ว';
+    }
+
+    if (result.profile) {
+      nameEl.textContent = result.profile.displayName || '';
+      if (result.profile.pictureUrl) {
+        avatar.src = result.profile.pictureUrl;
+        avatar.alt = result.profile.displayName || '';
+      } else {
+        avatar.remove();
+      }
+      profileWrap.hidden = false;
+    }
+
+    friendBtn.hidden = false;
+
+    if (result.orderSuccess && result.lineUrl && !result.autoOpened) {
+      chatLink.href = result.lineUrl;
+      chatWrap.hidden = false;
+    }
+
+    if (result.returnUrl) {
+      backLink.href = result.returnUrl;
+      backLink.textContent = notFriendYet ? 'กลับไปสั่งซื้ออีกครั้ง' : 'กลับไปยังหน้าที่แล้ว';
+    }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Netlify redirects — เว็บนี้เป็น static site ไม่มี server ให้เขียนไฟล์ .html ใหม่ตอน runtime เลย
+# เพจ standalone ที่สร้างผ่าน CMS > รายการเพจ ("+ เพิ่มเพจ standalone") จึงต้องอาศัย rewrite ระดับ hosting
+# แทน: request ไปที่ /<slug>.html ที่ไม่มีไฟล์จริงอยู่ จะถูก rewrite (สถานะ 200 ไม่ใช่ redirect 301/302 —
+# address bar ยังโชว์ /<slug>.html เหมือนเดิมทุกประการ ไม่เปลี่ยนเป็น query string ให้เห็น) ไปโหลดเนื้อหาจาก
+# promo.html?slug=<slug> แทน โดย promo.html จะอ่าน slug จาก path เอง (ดู promo.html's currentSlug())
+#
+# ⚠️ ปลอดภัย ไม่กระทบไฟล์ .html จริงที่มีอยู่แล้วทั้งหมด (our_story.html, career.html ฯลฯ) เพราะ Netlify
+# เช็คว่ามีไฟล์ตรงกับ path ที่ขอจริงก่อนเสมอ — ถ้ามีไฟล์จริงจะ serve ไฟล์นั้นตรงๆ ไม่แตะ redirect rule นี้เลย
+# กฎนี้จะทำงานเฉพาะตอนไม่มีไฟล์ .html ตรงกับ path ที่ขอเท่านั้น (เช่น เพจ standalone ที่เพิ่งสร้างใหม่)
+/*.html  /promo.html?slug=:splat  200
+
+# Catch-all 404: path ที่ไม่ตรงกับไฟล์จริงเลยและไม่ใช่ /*.html (เช่น ไม่มีนามสกุล หรือพิมพ์ผิด) ให้ serve
+# หน้า 404.html ของเราเอง (พร้อมสถานะ 404 จริง ไม่ใช่ 200) แทนหน้า 404 default ของ Netlify — กฎนี้ต้องอยู่
+# ท้ายสุดเสมอ (Netlify อ่านตามลำดับ จับกฎแรกที่ match) ไม่กระทบกฎ /*.html ด้านบนหรือไฟล์จริงใดๆ เพราะทั้งสอง
+# อย่างนั้น match ก่อนกฎนี้อยู่แล้ว — ส่วนกรณี /<slug>.html ที่ถูก rewrite ไป promo.html แล้วไม่พบเพจจริง (ปิด
+# ใช้งาน/ถูกลบ) จะไม่มาเจอกฎนี้เลย เพราะ page-render.js เป็นคน redirect ไป /404.html เองฝั่ง client (ดูหมายเหตุ
+# ใน page-render.js)
+/*  /404.html  404
