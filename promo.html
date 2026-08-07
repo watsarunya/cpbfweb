@@ -131,12 +131,8 @@
   </div>
 </section>
 
-<!-- Standalone page (ไม่ผูกเมนู): render หัวเพจ + section จาก Supabase ตาม ?slug= จัดการผ่าน CMS > Page Management -->
-<section class="page-section" style="padding-bottom: 0;">
-  <div class="section-container">
-    <h1 class="page-section__title" id="promoPageTitle" style="font-size: 2.2rem;"></h1>
-  </div>
-</section>
+<!-- Standalone page (ไม่ผูกเมนู): render section จาก Supabase ตาม ?slug= จัดการผ่าน CMS > Page Management
+     (ไม่แสดงชื่อเพจ (title_th) เป็นหัวข้อบนหน้าเว็บแล้วตามที่ผู้ใช้ขอ — ยังคงตั้ง document.title ไว้เหมือนเดิม) -->
 
 <div id="pageSectionsContainer" data-page-slug=""></div>
 <script>
@@ -314,25 +310,21 @@
 <script src="site-search.js"></script>
 <script src="i18n.js"></script>
 
-<!-- ตั้งหัวเพจ (title_th) จาก slug เดียวกับที่ page-render.js ใช้ render sections -->
+<!-- ตั้งหัวเพจ (document.title, ไม่ได้แสดงบนหน้าเว็บ) จาก slug เดียวกับที่ page-render.js ใช้ render sections -->
 <script>
   document.addEventListener('DOMContentLoaded', async function () {
     var slug = currentPromoSlug();
-    var titleEl = document.getElementById('promoPageTitle');
 
     if (!slug || !window.cpbfPages) {
-      titleEl.textContent = 'ไม่พบเพจนี้';
       return;
     }
 
     var page = await window.cpbfPages.fetchPageBySlug(slug);
     if (!page) {
-      titleEl.textContent = 'ไม่พบเพจนี้';
       return;
     }
 
     document.title = 'cpbf.co.th — ' + page.title_th;
-    titleEl.textContent = page.title_th;
 
     // Back to top
     var backToTop = document.getElementById('backToTop');
