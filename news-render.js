@@ -2,6 +2,12 @@
    และ render เป็น .blog-card component เดียวกับที่ index.html/newsroom.html/news-detail.html ใช้อยู่แล้ว
    ใช้ร่วมกันทุกหน้า (ต้องโหลดหลัง cms/supabase-client.js) */
 (function () {
+  var LANG_KEY = 'cpbf-lang';
+
+  function currentLang() {
+    return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th';
+  }
+
   function escapeHtml(text) {
     var div = document.createElement('div');
     div.textContent = text == null ? '' : String(text);
@@ -74,19 +80,33 @@
     el.className = 'blog-card';
     el.dataset.category = article.category ? article.category.slug : '';
 
+    var lang = currentLang();
+    var title = lang === 'en' ? (article.title_en || article.title_th) : article.title_th;
+    var excerpt = lang === 'en' ? (article.excerpt_en || article.excerpt_th) : article.excerpt_th;
+
     el.innerHTML =
-      '<a href="' + url + '" class="blog-card__image-link" aria-label="อ่าน ' + escapeHtml(article.title_th) + '">' +
-        '<img src="' + escapeHtml(article.image) + '" alt="' + escapeHtml(article.title_th) + '" class="blog-card__image" />' +
+      '<a href="' + url + '" class="blog-card__image-link" aria-label="อ่าน ' + escapeHtml(title) + '">' +
+        '<img src="' + escapeHtml(article.image) + '" alt="' + escapeHtml(title) + '" class="blog-card__image" />' +
       '</a>' +
       '<div class="blog-card__body">' +
         '<p class="blog-card__meta">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
           formatThaiDate(article.created_at) +
         '</p>' +
-        '<h3 class="blog-card__title"><a href="' + url + '">' + escapeHtml(article.title_th) + '</a></h3>' +
-        '<p class="blog-card__desc">' + escapeHtml(article.excerpt_th) + '</p>' +
-        '<a href="' + url + '" class="blog-card__readmore">อ่านเพิ่มเติม <span aria-hidden="true">→</span></a>' +
+        '<h3 class="blog-card__title"><a href="' + url + '">' + escapeHtml(title) + '</a></h3>' +
+        '<p class="blog-card__desc">' + escapeHtml(excerpt) + '</p>' +
+        '<a href="' + url + '" class="blog-card__readmore"><span data-en="Read more">อ่านเพิ่มเติม</span> <span aria-hidden="true">→</span></a>' +
       '</div>';
+
+    // สลับหัวข้อ/คำโปรยได้ตอนเปลี่ยนภาษาแบบไม่ต้องรีเฟรชหน้า (i18n.js) — ใส่เฉพาะจุดที่มี _en กรอกไว้จริง
+    var titleLink = el.querySelector('.blog-card__title a');
+    if (article.title_en) {
+      titleLink.setAttribute(lang === 'en' ? 'data-th' : 'data-en', lang === 'en' ? article.title_th : article.title_en);
+    }
+    var descEl = el.querySelector('.blog-card__desc');
+    if (article.excerpt_en) {
+      descEl.setAttribute(lang === 'en' ? 'data-th' : 'data-en', lang === 'en' ? article.excerpt_th : article.excerpt_en);
+    }
 
     return el;
   }

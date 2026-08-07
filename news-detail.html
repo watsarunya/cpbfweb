@@ -391,22 +391,37 @@
       return;
     }
 
-    document.title = 'cpbf.co.th — ' + article.title_th;
-    titleEl.textContent = article.title_th;
-    excerptEl.textContent = article.excerpt_th || '';
+    // ⚠️ หัวข้อ/คำโปรย/เนื้อหา/หมวดหมู่ สลับภาษาได้ตอนเปลี่ยนภาษาแบบไม่ต้องรีเฟรชหน้าแล้ว (i18n.js) — ตั้งค่า
+    // เริ่มต้นตามภาษาปัจจุบัน + ผูก data-en(-html) ไว้ให้สลับต่อได้ ใส่เฉพาะฟิลด์ที่กรอก EN ไว้จริงเท่านั้น
+    var ndLang = localStorage.getItem('cpbf-lang') === 'en' ? 'en' : 'th';
+    var displayTitle = ndLang === 'en' ? (article.title_en || article.title_th) : article.title_th;
+    var displayExcerpt = ndLang === 'en' ? (article.excerpt_en || article.excerpt_th) : article.excerpt_th;
+
+    document.title = 'cpbf.co.th — ' + displayTitle;
+    titleEl.textContent = displayTitle;
+    if (article.title_en) titleEl.setAttribute(ndLang === 'en' ? 'data-th' : 'data-en', ndLang === 'en' ? article.title_th : article.title_en);
+
+    excerptEl.textContent = displayExcerpt || '';
+    if (article.excerpt_en) excerptEl.setAttribute(ndLang === 'en' ? 'data-th' : 'data-en', ndLang === 'en' ? (article.excerpt_th || '') : article.excerpt_en);
+
     heroImage.src = article.image || '';
-    heroImage.alt = article.title_th;
+    heroImage.alt = displayTitle;
     dateTextEl.textContent = window.cpbfNews.formatThaiDate(article.created_at);
 
     updateShareMetaTags(article);
 
     if (article.category) {
-      categoryEl.textContent = article.category.name_th;
+      var categoryName = ndLang === 'en' ? (article.category.name_en || article.category.name_th) : article.category.name_th;
+      categoryEl.textContent = categoryName;
       categoryEl.hidden = false;
+      if (article.category.name_en) categoryEl.setAttribute(ndLang === 'en' ? 'data-th' : 'data-en', ndLang === 'en' ? article.category.name_th : article.category.name_en);
     }
 
-    // เนื้อหาบทความกรอกผ่าน textarea ธรรมดาใน CMS (ไม่ใช่ rich text) แต่ sanitize ไว้เผื่อมี HTML ปนมา
-    contentEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(article.content_th || '') : window.cpbfNews.escapeHtml(article.content_th || '');
+    // เนื้อหาบทความกรอกผ่าน rich text editor (Quill) ใน CMS — เป็น HTML จริง ต้อง sanitize ก่อน render เสมอ
+    var contentTh = window.DOMPurify ? DOMPurify.sanitize(article.content_th || '') : window.cpbfNews.escapeHtml(article.content_th || '');
+    var contentEn = window.DOMPurify ? DOMPurify.sanitize(article.content_en || '') : window.cpbfNews.escapeHtml(article.content_en || '');
+    contentEl.innerHTML = ndLang === 'en' ? (contentEn || contentTh) : contentTh;
+    if (contentEn) contentEl.setAttribute(ndLang === 'en' ? 'data-th-html' : 'data-en-html', ndLang === 'en' ? contentTh : contentEn);
 
     // บทความที่เกี่ยวข้อง: สุ่ม 4 รายการ ไม่รวมบทความนี้
     if (nextGrid) {

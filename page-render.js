@@ -221,6 +221,11 @@
     // ด้วย DOMPurify เหมือน section แบบอื่นทุกประการ
     if (section.layout === 'custom-html') {
       el.innerHTML = bgHtml + '<div class="page-section__custom-content">' + sanitize(section.body_th) + '</div>';
+      // สลับภาษาได้ (data-en-html) เฉพาะถ้ามี body_en กรอกไว้จริง — ใช้ setAttribute() ไม่ใช่ string
+      // concatenation เพราะเนื้อหา HTML อาจมี " อยู่ข้างในซึ่งจะทำลาย attribute quoting ถ้า embed ตรงๆ
+      if (section.body_en) {
+        el.querySelector('.page-section__custom-content').setAttribute('data-en-html', sanitize(section.body_en));
+      }
       return el;
     }
 
@@ -238,7 +243,7 @@
         : '';
       var btnLabel = escapeHtml(section.button_text_th) + (btnStyle === 'text-link' ? ' →' : '');
       button =
-        '<a href="' + escapeHtml(section.button_link) + '" class="' + btnClass + '"' + btnColorStyle + '>' +
+        '<a href="' + escapeHtml(section.button_link) + '" class="' + btnClass + ' js-page-section-btn"' + btnColorStyle + '>' +
           btnLabel +
         '</a>';
     }
@@ -265,6 +270,26 @@
           '</div>' +
         '</div>' +
       '</div>';
+
+    // ⚠️ ผูก data-en(-html/-href) หลัง el.innerHTML เสมอ (ใช้ setAttribute() ไม่ใช่ฝัง string เข้า template
+    // ตรงๆ) เพื่อกัน attribute value พัง ถ้าเนื้อหา TH/EN มีเครื่องหมาย " หรือ < อยู่ข้างใน — ใส่เฉพาะฟิลด์ที่
+    // แอดมินกรอก EN ไว้จริงเท่านั้น (ไม่ใส่ = ใช้ TH เหมือนเดิมทั้ง 2 ภาษา ไม่ใช่ error)
+    if (section.heading_en) {
+      var headingEl = el.querySelector('.page-section__title');
+      if (headingEl) headingEl.setAttribute('data-en', section.heading_en);
+    }
+    if (section.body_en) {
+      el.querySelector('.page-section__text').setAttribute('data-en-html', sanitize(section.body_en));
+    }
+    var btnEl = el.querySelector('.js-page-section-btn');
+    if (btnEl) {
+      // btnStyle มาจาก scope ด้านบน (ตั้งไว้ตอนสร้างปุ่ม) — ต้องต่อลูกศรให้ label EN เหมือน TH ด้วยถ้าเป็น
+      // แบบ text-link ไม่งั้นสลับภาษาแล้วลูกศรหายไป
+      if (section.button_text_en) {
+        btnEl.setAttribute('data-en', section.button_text_en + (btnStyle === 'text-link' ? ' →' : ''));
+      }
+      if (section.button_link_en) btnEl.setAttribute('data-en-href', section.button_link_en);
+    }
 
     return el;
   }

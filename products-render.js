@@ -3,6 +3,16 @@
    ใช้ร่วมกันทุกหน้า (ต้องโหลดหลัง cms/supabase-client.js และก่อน cart.js) */
 (function () {
   var BG_CYCLE = ['var(--ci-blue)', 'var(--ci-yellow)', 'var(--accent-pink)'];
+  var LANG_KEY = 'cpbf-lang';
+
+  function currentLang() {
+    return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th';
+  }
+
+  // ชื่อสินค้าที่ควรแสดงตามภาษาปัจจุบัน (fallback TH ถ้าไม่ได้กรอก EN ไว้ — ไม่ใช่ error แค่ยังไม่มีคำแปล)
+  function displayName(product) {
+    return currentLang() === 'en' ? (product.name_en || product.name_th) : product.name_th;
+  }
 
   function escapeHtml(text) {
     var div = document.createElement('div');
@@ -88,11 +98,12 @@
     article.dataset.category = product.category ? product.category.slug : '';
 
     var isOutOfStock = Number(product.stock) <= 0;
+    var name = displayName(product);
 
     article.innerHTML =
-      '<a href="product-detail.html?id=' + encodeURIComponent(product.id) + '" class="shop-card__image-link" aria-label="ดูสินค้า ' + escapeHtml(product.name_th) + '">' +
+      '<a href="product-detail.html?id=' + encodeURIComponent(product.id) + '" class="shop-card__image-link" aria-label="ดูสินค้า ' + escapeHtml(name) + '">' +
         '<div class="shop-card__visual" style="--product-bg: ' + bg + ';">' +
-          '<img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name_th) + '" class="shop-card__image">' +
+          '<img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(name) + '" class="shop-card__image">' +
           '<span class="shop-card__quickview">' +
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>' +
             'Quick View' +
@@ -100,16 +111,24 @@
         '</div>' +
       '</a>' +
       '<div class="shop-card__content">' +
-        '<h3 class="shop-card__name">' + escapeHtml(product.name_th) + '</h3>' +
+        '<h3 class="shop-card__name">' + escapeHtml(name) + '</h3>' +
         '<span class="shop-card__price">' + formatBaht(product.price) + '</span>' +
         '<div class="shop-card__actions">' +
-          '<button type="button" class="shop-card__add-btn" aria-label="เพิ่ม ' + escapeHtml(product.name_th) + ' ลงตะกร้า"' + (isOutOfStock ? ' disabled' : '') + '>' + (isOutOfStock ? 'สินค้าหมด' : 'Add to cart') + '</button>' +
-          '<a href="https://line.me/R/oaMessage/@' + (window.CPBF_LINE_OA_ID || 'cpbf') + '/" target="_blank" rel="noopener" class="shop-card__line-btn" aria-label="สั่งซื้อ ' + escapeHtml(product.name_th) + ' ผ่าน LINE">' +
+          '<button type="button" class="shop-card__add-btn" aria-label="เพิ่ม ' + escapeHtml(name) + ' ลงตะกร้า"' + (isOutOfStock ? ' disabled' : '') + '>' + (isOutOfStock ? 'สินค้าหมด' : 'Add to cart') + '</button>' +
+          '<a href="https://line.me/R/oaMessage/@' + (window.CPBF_LINE_OA_ID || 'cpbf') + '/" target="_blank" rel="noopener" class="shop-card__line-btn" aria-label="สั่งซื้อ ' + escapeHtml(name) + ' ผ่าน LINE">' +
             '<span class="shop-card__line-icon-wrap"><img src="raw/assets/icons/line-ar21.svg" alt="" class="shop-card__line-icon" /></span>' +
             'Shop with LINE' +
           '</a>' +
         '</div>' +
       '</div>';
+
+    // สลับชื่อสินค้าได้ตอนเปลี่ยนภาษาแบบไม่ต้องรีเฟรชหน้า (i18n.js) — ใส่เฉพาะจุดที่มี name_en กรอกไว้จริง
+    if (product.name_en) {
+      article.querySelector('.shop-card__name').setAttribute(
+        currentLang() === 'en' ? 'data-th' : 'data-en',
+        currentLang() === 'en' ? product.name_th : product.name_en
+      );
+    }
 
     return article;
   }

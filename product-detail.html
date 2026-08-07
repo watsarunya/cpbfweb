@@ -591,15 +591,26 @@
       return;
     }
 
-    document.title = 'cpbf.co.th — ' + product.name_th + ' (Product Detail)';
-    titleEl.textContent = product.name_th;
-    // description_th มาจาก rich text editor (Quill) ใน CMS — เป็น HTML จริง ต้อง sanitize ก่อน render เสมอ
-    descEl.innerHTML = window.DOMPurify ? DOMPurify.sanitize(product.description_th || '') : '';
+    // ⚠️ ชื่อ/รายละเอียด/หมวดหมู่สินค้า สลับภาษาได้ตอนเปลี่ยนภาษาแบบไม่ต้องรีเฟรชหน้าแล้ว (i18n.js) — ตั้งค่า
+    // เริ่มต้นตามภาษาปัจจุบัน + ผูก data-en(-html) ไว้ให้สลับต่อได้ ใส่เฉพาะฟิลด์ที่กรอก EN ไว้จริงเท่านั้น
+    var pdpLang = localStorage.getItem('cpbf-lang') === 'en' ? 'en' : 'th';
+    var displayName = pdpLang === 'en' ? (product.name_en || product.name_th) : product.name_th;
+
+    document.title = 'cpbf.co.th — ' + displayName + ' (Product Detail)';
+    titleEl.textContent = displayName;
+    if (product.name_en) titleEl.setAttribute(pdpLang === 'en' ? 'data-th' : 'data-en', pdpLang === 'en' ? product.name_th : product.name_en);
+
+    // description_th/en มาจาก rich text editor (Quill) ใน CMS — เป็น HTML จริง ต้อง sanitize ก่อน render เสมอ
+    var descTh = window.DOMPurify ? DOMPurify.sanitize(product.description_th || '') : '';
+    var descEn = window.DOMPurify ? DOMPurify.sanitize(product.description_en || '') : '';
+    descEl.innerHTML = pdpLang === 'en' ? (descEn || descTh) : descTh;
+    if (descEn) descEl.setAttribute(pdpLang === 'en' ? 'data-th-html' : 'data-en-html', pdpLang === 'en' ? descTh : descEn);
+
     priceEl.textContent = window.cpbfProducts.formatBaht(product.price);
 
     var galleryImages = (product.images && product.images.length) ? product.images : (product.image ? [product.image] : []);
     mainImage.src = galleryImages[0] || '';
-    mainImage.alt = product.name_th;
+    mainImage.alt = displayName;
 
     if (galleryImages.length > 1) {
       thumbsWrap.innerHTML = '';
@@ -610,7 +621,7 @@
         thumbBtn.className = 'pdp-thumb' + (i === 0 ? ' is-active' : '');
         var thumbImg = document.createElement('img');
         thumbImg.src = url;
-        thumbImg.alt = product.name_th + ' — ภาพที่ ' + (i + 1);
+        thumbImg.alt = displayName + ' — ภาพที่ ' + (i + 1);
         thumbBtn.appendChild(thumbImg);
         thumbBtn.addEventListener('click', function () {
           thumbsWrap.querySelectorAll('.pdp-thumb').forEach(function (t) { t.classList.remove('is-active'); });
@@ -621,7 +632,8 @@
       });
     }
 
-    breadcrumbCurrent.textContent = product.name_th;
+    breadcrumbCurrent.textContent = displayName;
+    if (product.name_en) breadcrumbCurrent.setAttribute(pdpLang === 'en' ? 'data-th' : 'data-en', pdpLang === 'en' ? product.name_th : product.name_en);
 
     var isOutOfStock = Number(product.stock) <= 0;
     stockEl.textContent = isOutOfStock ? 'สินค้าหมดชั่วคราว' : 'คงเหลือ ' + product.stock + ' ชิ้น';
@@ -634,13 +646,20 @@
 
     if (product.category) {
       var categoryUrl = 'products.html?category=' + encodeURIComponent(product.category.slug);
-      categoryLink.textContent = product.category.name_th;
+      var categoryName = pdpLang === 'en' ? (product.category.name_en || product.category.name_th) : product.category.name_th;
+      categoryLink.textContent = categoryName;
       categoryLink.href = categoryUrl;
       categoryRow.hidden = false;
-      breadcrumbCategory.textContent = product.category.name_th;
+      breadcrumbCategory.textContent = categoryName;
       breadcrumbCategory.href = categoryUrl;
       breadcrumbCategory.hidden = false;
       breadcrumbCategorySep.hidden = false;
+      if (product.category.name_en) {
+        var catAttr = pdpLang === 'en' ? 'data-th' : 'data-en';
+        var catVal = pdpLang === 'en' ? product.category.name_th : product.category.name_en;
+        categoryLink.setAttribute(catAttr, catVal);
+        breadcrumbCategory.setAttribute(catAttr, catVal);
+      }
     }
 
     // Quantity stepper
@@ -659,7 +678,7 @@
       addToCartBtn.addEventListener('click', function () {
         window.cpbfCart.addToCart({
           id: product.id,
-          name: product.name_th,
+          name: titleEl.textContent,
           price: product.price,
           image: product.image || '',
           url: 'product-detail.html?id=' + encodeURIComponent(product.id),
@@ -682,14 +701,14 @@
       var message = [
         'สนใจสั่งซื้อสินค้าดังนี้ค่ะ/ครับ',
         '',
-        '1. ' + product.name_th,
+        '1. ' + titleEl.textContent,
         '   จำนวน: ' + qty + ' x ' + window.cpbfProducts.formatBaht(product.price) + ' = ' + window.cpbfProducts.formatBaht(lineTotal),
         '   ลิงก์: ' + productUrl,
         '',
         'รวมทั้งหมด: ' + window.cpbfProducts.formatBaht(lineTotal)
       ].join('\n');
 
-      window.openLineOrder(message, [{ name: product.name_th, qty: qty, price: product.price, url: productUrl }]);
+      window.openLineOrder(message, [{ name: titleEl.textContent, qty: qty, price: product.price, url: productUrl }]);
     });
 
     // สินค้าที่เกี่ยวข้อง: สุ่ม 5 รายการ ไม่รวมสินค้านี้

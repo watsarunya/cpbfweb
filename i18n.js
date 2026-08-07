@@ -1,8 +1,13 @@
 /* i18n.js — สลับภาษาไทย/อังกฤษทั้งเว็บแบบไม่ต้องรีเฟรชหน้า
    วิธีใช้ต่อ element: เก็บข้อความไทย (ค่าเริ่มต้นของเว็บ) ไว้ในเนื้อหา/attribute ปกติ
-   แล้วเพิ่ม data-en="..." (หรือ data-en-placeholder / data-en-aria-label / data-en-alt / data-en-title)
+   แล้วเพิ่ม data-en="..." (หรือ data-en-placeholder / data-en-aria-label / data-en-alt / data-en-title /
+   data-en-src / data-en-href / data-en-html — data-en-html สลับ .innerHTML แทน .textContent สำหรับเนื้อหา
+   rich text ที่เป็น HTML จริง เช่น เนื้อหา section ของเพจ/รายละเอียดสินค้า/บทความจาก Supabase)
    สำหรับ element ที่เนื้อหาเริ่มต้นเป็นภาษาอังกฤษอยู่แล้ว (เช่น "Products") ให้ใส่ data-th="..." แทน
-   ค่าที่ยังไม่มี attribute คู่ตรงข้าม จะถูก cache จากเนื้อหาปัจจุบันอัตโนมัติ (ไม่ต้องใส่ทั้งคู่เสมอไป) */
+   ค่าที่ยังไม่มี attribute คู่ตรงข้าม จะถูก cache จากเนื้อหาปัจจุบันอัตโนมัติ (ไม่ต้องใส่ทั้งคู่เสมอไป) —
+   สำหรับเนื้อหาที่มาจาก Supabase (ไม่ใช่ static HTML) แนะนำให้ตั้งทั้ง data-th- และ data-en- คู่กันพร้อมกัน
+   ตอนสร้าง element เลย (ดู bilingualText() ใน nav-render.js/banner-render.js เป็นตัวอย่าง) เพื่อให้เนื้อหา
+   เริ่มต้นถูกต้องตามภาษาปัจจุบันทันทีโดยไม่ต้องรอ event ใดๆ */
 
 (function () {
   var STORAGE_KEY = 'cpbf-lang';
@@ -38,6 +43,23 @@
     }
   }
 
+  // ⚠️ เพิ่ม 2026-08-07: สลับ .innerHTML แทน .textContent — ใช้กับเนื้อหา rich text จาก Supabase (เช่น
+  // เนื้อหา section ของเพจ/รายละเอียดสินค้า/เนื้อหาบทความ) ที่เป็น HTML จริง (ตัวหนา/ลิงก์/ฯลฯ) สลับด้วย
+  // applyTextSwap ตรงๆ ไม่ได้เพราะจะทำลาย HTML tag ทั้งหมด (.textContent อ่าน/เขียนเป็น plain text เท่านั้น)
+  // ใช้ el.setAttribute()/el.getAttribute() เก็บ/อ่านค่า (browser จัดการ escape ให้เองถูกต้องเสมอ ไม่ต้อง
+  // encode เองมือ แม้เนื้อหาจะมี " หรือ < อยู่ก็ตาม)
+  function applyHtmlSwap(el, lang) {
+    if (!el.hasAttribute('data-en-html') && !el.hasAttribute('data-th-html')) return;
+    var cacheAttr = lang === 'en' ? 'data-th-html' : 'data-en-html';
+    var useAttr = lang === 'en' ? 'data-en-html' : 'data-th-html';
+    if (!el.hasAttribute(cacheAttr)) {
+      el.setAttribute(cacheAttr, el.innerHTML);
+    }
+    if (el.hasAttribute(useAttr)) {
+      el.innerHTML = el.getAttribute(useAttr);
+    }
+  }
+
   function applyLang(lang) {
     document.documentElement.setAttribute('lang', lang);
 
@@ -61,6 +83,14 @@
     // ของ .textContent เท่านั้น ไม่มีผลกับ media element เลย ทำให้สลับภาษาแล้ว Hero Banner ไม่เปลี่ยนรูปตาม)
     document.querySelectorAll('[data-en-src], [data-th-src]').forEach(function (el) {
       applyAttrSwap(el, lang, 'src', 'src');
+    });
+    // ⚠️ เพิ่ม 2026-08-07: สลับ href (เช่น ปุ่มของ section ที่มีลิงก์ TH/EN ต่างกัน) และเนื้อหา rich text
+    // (innerHTML) — ใช้โดย page-render.js/products-render.js/news-render.js สำหรับข้อมูลจาก Supabase
+    document.querySelectorAll('[data-en-href], [data-th-href]').forEach(function (el) {
+      applyAttrSwap(el, lang, 'href', 'href');
+    });
+    document.querySelectorAll('[data-en-html], [data-th-html]').forEach(function (el) {
+      applyHtmlSwap(el, lang);
     });
 
     var codeEl = document.querySelector('.site-header__lang-code');
