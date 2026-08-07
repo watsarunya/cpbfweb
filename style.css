@@ -5450,7 +5450,18 @@ button:focus-visible {
 .vision-section {
     padding: 50px 5%;
     text-align: center;
+
+    max-width: 1400px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    align-items: stretch;
 }
+.vision-right {
+        position: relative;
+        min-height: 520px;
+    }
 
 .vision-title {
     text-align: center;
@@ -5467,14 +5478,16 @@ button:focus-visible {
 }
 
 .vision-card {
-    position: relative;
     overflow: hidden;
     border-radius: 28px;
     aspect-ratio: 4 / 3;
     background: rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(2px);
-  border: 1px solid #ffffff;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(2px);
+    border: 1px solid #ffffff;
+    position: absolute;
+    padding: 28px 36px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
 }
 
 .vision-card img {
@@ -5529,6 +5542,23 @@ button:focus-visible {
     line-height: 1.8;
     color: rgba(255, 255, 255, 0.85);
 }
+.vision-card-top {
+        top: 20px;
+        left: 20px;
+        max-width: 300px;
+    }
+.vision-card-middle {
+        top: 195px;
+        right: 20px;
+        max-width: 260px;
+    }
+
+.vision-card-bottom {
+        bottom: 30px;
+        left: 26%;
+        transform: translateX(-50%);
+        max-width: 260px;
+    }    
 
 /* Tablet */
 
@@ -5544,7 +5574,14 @@ button:focus-visible {
     .why-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .vision-section {
+            grid-template-columns: 1fr;
+    }
+    .vision-right {
+            min-height: 420px;
+    }
 }
+
 
 /* Mobile */
 
@@ -5564,7 +5601,39 @@ button:focus-visible {
     .why-grid {
         grid-template-columns: 1fr;
     }
+    .vision-section {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    .vision-left,.vision-right {
+        width: 100% !important;
+    }
+
+    .vision-right {
+       display: flex !important;
+      flex-direction: column !important;
+      
+    }
+    
+    .vision-card-mb {
+      top: 0 !important;
+      left: 0 !important;
+      bottom: 0 !important;
+      right: 0 !important;
+      transform:translateX(0%) !important;
+      position: relative !important;
+      max-width: 300px !important;
+      margin: 10px auto;
+    }
+
+        .vision-left h2 {
+            font-size: 2.2rem !important;
+        }
+
+        .vision-left p {
+            max-width: 100% !important;
+        }
 
 }
 
-}
