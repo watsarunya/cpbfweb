@@ -633,10 +633,9 @@
         return { name: item.name, qty: item.qty, price: item.price, url: absoluteUrl(item.url || 'products.html') };
       });
 
-      // ⚠️ ไม่เคลียร์ตะกร้าล่วงหน้าอีกต่อไป — เคลียร์ก็ต่อเมื่อ openLineOrder ยืนยันว่าส่งออเดอร์เข้าแชทลูกค้า
-      // สำเร็จจริงเท่านั้น (customerOk === true จากฝั่ง send-line-order) ถ้าลูกค้ายังไม่เพิ่มเพื่อน OA หรือ
-      // กำลังถูก redirect ไป LINE Login ตะกร้าจะยังอยู่เหมือนเดิม เหมือนกับยังไม่ได้กดสั่งซื้อ (result.success
-      // เป็น false ทั้งสองกรณี — ต่างกันแค่ redirected: true ตอนกำลังไปหน้า LINE Login)
+      // ⚠️ ไม่เคลียร์ตะกร้าล่วงหน้าอีกต่อไป — เคลียร์ก็ต่อเมื่อ openLineOrder ยืนยันว่าพาลูกค้าไปหน้าแชทกับ
+      // @cpbf สำเร็จจริงเท่านั้น (result.success === true) ถ้ายังไม่เพิ่มเพื่อน OA, ถูก redirect ไปเปิด LINE
+      // app ก่อน, หรือเปิดผ่าน desktop ตะกร้าจะยังอยู่เหมือนเดิม เหมือนกับยังไม่ได้กดสั่งซื้อ (ดู line-login.js)
       var result = await window.openLineOrder(message, orderItems, { clearCartOnSuccess: true });
       if (result && result.success) {
         window.cpbfCart.clearCart();
