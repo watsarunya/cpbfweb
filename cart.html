@@ -737,19 +737,31 @@
 <script src="products-render.js"></script>
 <script src="site-search.js"></script>
 <script src="i18n.js"></script>
-<!-- LINE Order Modal (desktop): แสดงข้อความยืนยันสั่งซื้อสำเร็จ (ไม่ใช่ QR อีกต่อไป) เพราะระบบแจ้งแอดมินอัตโนมัติผ่าน
-     Supabase Edge Function อยู่แล้ว (ดู notifyAdminAuto/isMobileDevice ใน line-login.js) ไม่จำเป็นต้องให้ลูกค้าสแกน/ส่งเองซ้ำ
-     มือถือยังคงเปิดแอป LINE ตรงๆ ตามปกติ -->
+<!-- LINE Order Modal (desktop): แสดงหน้าสรุปคำสั่งซื้อ + ปุ่ม "ยืนยันการสั่งซื้อ" ก่อนเสมอ (ไม่ push อัตโนมัติ
+     ตามที่ผู้ใช้ขอ 2026-08-07) ใช้ตอนมี LINE profile ที่ยืนยันแล้วอยู่ในเบราว์เซอร์ (ข้าม LINE Login ได้) — ดู
+     confirmViaModal ใน line-login.js สำหรับ logic เต็ม มือถือเปิดแอป LINE ตรงๆ หลังยืนยัน+ส่งสำเร็จตามปกติ -->
 <div class="line-order-modal" id="lineOrderModal" hidden>
   <div class="line-order-modal__backdrop" data-close></div>
   <div class="line-order-modal__panel" role="dialog" aria-modal="true" aria-labelledby="lineOrderModalTitle">
     <button type="button" class="line-order-modal__close" data-close aria-label="ปิดหน้าต่างนี้">&times;</button>
-    <div class="line-order-modal__icon" aria-hidden="true">
+    <div class="line-order-modal__icon" id="lineOrderModalIcon" aria-hidden="true">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12.3l2.6 2.6L16 9.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <h2 class="line-order-modal__title" id="lineOrderModalTitle">สั่งซื้อสำเร็จ</h2>
-    <p class="line-order-modal__desc">ทีมงานของเราได้รับคำสั่งซื้อของคุณแล้ว และจะรีบติดต่อกลับโดยเร็วที่สุด</p>
-    <div class="line-order-modal__actions">
+    <h2 class="line-order-modal__title" id="lineOrderModalTitle">ตรวจสอบคำสั่งซื้อของคุณ</h2>
+    <p class="line-order-modal__desc" id="lineOrderModalDesc">กดยืนยันเพื่อส่งคำสั่งซื้อนี้เข้า LINE ของเรา</p>
+
+    <div id="lineOrderModalSummary" class="line-callback-summary">
+      <ul id="lineOrderModalItemList" class="line-callback-summary__list"></ul>
+      <p class="line-callback-summary__total" id="lineOrderModalTotal"></p>
+      <button type="button" id="lineOrderModalConfirmBtn" class="line-callback-confirm-btn">ยืนยันการสั่งซื้อ</button>
+    </div>
+
+    <a id="lineOrderModalFriendBtn" href="https://line.me/R/ti/p/@cpbf" target="_blank" rel="noopener"
+       class="line-callback-friend-btn" hidden>
+      เพิ่มเราเป็นเพื่อนใน LINE
+    </a>
+
+    <div class="line-order-modal__actions" id="lineOrderModalActionsWrap" hidden>
       <a href="#" id="lineOrderModalDirectLink" target="_blank" rel="noopener" class="line-order-modal__direct-link">หรือแชทกับเราต่อทาง LINE</a>
     </div>
   </div>
