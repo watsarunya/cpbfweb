@@ -1179,19 +1179,21 @@ button:focus-visible {
   }
 
   .business-accordion {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     height: auto;
   }
 
   .business-item {
     /* ⚠️ แก้บั๊ก: .business-item มี flex: 1 1 0 เป็นค่าเริ่มต้น (flex-basis: 0) — พอ .business-accordion
-       เปลี่ยนเป็น flex-direction: column ตรงนี้ แกนหลัก (main axis) กลายเป็นแนวตั้ง ทำให้ flex-basis (ไม่ใช่
-       height) เป็นตัวกำหนดความสูงแทน — height: 200px ที่ตั้งไว้เดิมจึงไม่มีผลเลย (ยัง 0px ตาม flex-basis)
-       ลูกๆ ข้างในทุกตัว (รูป/overlay/ข้อความ) เป็น position:absolute หมด ไม่มีตัวไหนดันความสูงจาก content ได้
-       เลย การ์ดทั้งใบเลย "หาย" (สูง 0px) ทั้งที่รูปโหลดสำเร็จจริง — แก้ด้วย flex: none (= flex-basis: auto)
-       ให้ height: 200px กลับมามีผลอีกครั้ง ไม่ต้อง grow อีกต่อไปเพราะบนมือถือเรียงเป็นคอลัมน์เดียวอยู่แล้ว */
+       เปลี่ยนเป็น flex-wrap แถวละ 2 ใบตรงนี้ flex-basis เดิม (0) จะไปรบกวนการคำนวณความกว้าง/ความสูงจาก
+       width/height ที่ตั้งไว้ (เหมือนปัญหาเดียวกับตอนใช้ flex-direction: column มาก่อน) — แก้ด้วย flex: none
+       (= flex-basis: auto) ให้ width/height ที่ตั้งไว้ตรงนี้มีผลจริงเสมอ ไม่ว่าจะจัดเรียงแบบไหนก็ตาม —
+       ลูกๆ ข้างในทุกตัว (รูป/overlay/ข้อความ) เป็น position:absolute หมด ไม่มีตัวไหนดันขนาดจาก content ได้
+       เอง ต้องกำหนด width/height ตรงๆ เสมอ */
     flex: none !important;
-    width: 100%;
+    /* แถวละ 2 ใบ: (100% - gap 12px) / 2 */
+    width: calc((100% - 12px) / 2);
     height: 200px;
   }
 
