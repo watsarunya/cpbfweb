@@ -954,6 +954,10 @@ button {
   overflow: hidden;
   border: 1px solid var(--cms-border);
 }
+.ql-toolbar.ql-snow + .ql-container.ql-snow{
+  border-top: 1px solid #ccc !important;
+
+}
 
 .cms-rich-editor .ql-toolbar {
   border: none;
@@ -969,7 +973,7 @@ button {
 }
 
 .cms-rich-editor .ql-editor {
-  height: 250px;
+  height: 500px;
 }
 
 /* ปุ่ม "</>" สลับไปแก้โค้ด HTML ดิบของเนื้อหา section โดยตรง (เฉพาะ cms/page-editor.html — ดู
@@ -1365,6 +1369,107 @@ button {
   color: var(--cms-text-faint);
 }
 
+/* ===== cms/legal-pages.html — จัดการ Footer (นโยบายความเป็นส่วนตัว/ข้อกำหนดการใช้งาน) ===== */
+.cms-legal-card {
+  margin-bottom: 24px;
+  padding: 20px;
+}
+
+.cms-legal-history-item {
+  border: 1px solid var(--cms-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.cms-legal-history-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cms-legal-history-item__head span {
+  color: var(--cms-text-faint);
+  font-size: 13px;
+}
+
+.cms-legal-history-item__content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cms-border);
+}
+
+.cms-legal-history-item__body {
+  border: 1px solid var(--cms-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* ===== cms/social-links.html — จัดการ Footer > Social (ไอคอนโซเชียลสูงสุด 6 อัน) ===== */
+.cms-social-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cms-social-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--cms-border);
+  border-radius: 12px;
+  background: var(--cms-card);
+}
+
+.cms-social-card__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.cms-social-card__reorder .cms-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+/* dropzone ไอคอนขนาดเล็ก สี่เหลี่ยมจัตุรัส — ต่างจาก .cms-dropzone ทั่วไปที่ออกแบบไว้สำหรับแบนเนอร์ขนาดใหญ่ */
+.cms-social-card__dropzone {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  padding: 8px;
+}
+
+.cms-social-card__dropzone .cms-dropzone__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cms-social-card__dropzone .cms-dropzone__title {
+  font-size: 11px;
+}
+
+.cms-social-card__fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.cms-social-card__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 /* ===== Modal ===== */
 
 .cms-modal-overlay {
@@ -1426,6 +1531,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 20px;
 }
 
 /* [hidden] ของ browser เจอปัญหา specificity เท่ากับ .cms-field (ทั้งคู่ 0,1,0) แต่ .cms-field มาทีหลังใน
@@ -1804,7 +1910,7 @@ button {
 
 .cms-toast {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
   z-index: 200;
   display: flex;

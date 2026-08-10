@@ -148,7 +148,187 @@ Append-only ทุก entry ขึ้นต้นด้วย prefix รูป�
 
 > หมายเหตุ: ส่วนนี้เป็นคนละโปรเจกต์กับ LLM Wiki ด้านบน (หมวด 1-8) — เอกสารนี้เป็นบันทึกความคืบหน้าของงาน **redesign เว็บไซต์ cpbf.co.th** ที่ทำอยู่ในโฟลเดอร์เดียวกัน ใช้ไฟล์ HTML/CSS/JS ที่ root ของโปรเจกต์ (ไม่ใช่ raw/wiki) เก็บไว้ที่นี่ตามที่ผู้ใช้ขอ เพื่อให้ session ถัดไป (หรือคนอื่น) อ่านแล้วเข้าใจภาพรวมได้ทันทีโดยไม่ต้องไล่ transcript ทั้งหมด
 >
-> อัปเดตล่าสุด: 2026-08-06 — **แก้บั๊ก: ปุ่ม "</>" ของ `cms/page-editor.html` แก้โค้ด HTML แล้วกลับ WYSIWYG
+> อัปเดตล่าสุด: 2026-08-10 — **Footer คอลัมน์ลิงก์กลาง (ผลิตภัณฑ์ของเรา/บริการของเรา/บริษัท) เปลี่ยนจาก static
+> hardcode มาดึงจาก Menu Management จริงแล้ว** (ผู้ใช้ขอ — เดิม 3 คอลัมน์นี้เป็นลิสต์ที่พิมพ์ตายตัวไว้ในทุกไฟล์
+> HTML คนละชุดกับ header nav เอง ไม่เชื่อมกับตาราง `menu_items` เลย แก้/ลบ/เพิ่มเมนูผ่าน CMS ไม่มีผลกับ footer)
+> — ไฟล์ใหม่ `footer-render.js` (pattern เดียวกับ `nav-render.js` — ดึง `menu_items` ที่ `is_active=true`
+> เรียงตาม `sort_order`, ถ้าดึงไม่สำเร็จคง static fallback เดิมไว้ ไม่พังหน้า) กฎการจัดกลุ่มตามที่ผู้ใช้ระบุ:
+> เมนูหลักที่**มี**เมนูย่อย → แยกเป็นคอลัมน์ของตัวเอง (หัวข้อ = ชื่อเมนูหลัก, ลิงก์ = เมนูย่อยแต่ละอัน — ใช้
+> `parent_id` เดียวกับที่ `nav-render.js` ใช้จัดกลุ่ม header dropdown อยู่แล้ว) เมนูหลักที่**ไม่มี**เมนูย่อย →
+> รวมกันอยู่ใต้คอลัมน์ "บริษัท" (Company) **ถ้ากลุ่ม "บริษัท" มีเกิน 5 เมนู → แบ่งเป็นหลายคอลัมน์คอลัมน์ละไม่
+> เกิน 5 อัน** (หัวข้อ "บริษัท" ซ้ำทุกคอลัมน์ที่แบ่ง) — เมนูที่ถูกลบ/ปิดใช้งานจะหายจาก footer อัตโนมัติ
+> (query กรอง `is_active=true` เหมือน `nav-render.js`), เมนูใหม่โผล่ใน footer อัตโนมัติโดยไม่ต้องแก้โค้ดเพิ่ม
+> — ผลข้างเคียงที่ตั้งใจ: คอลัมน์ footer จะไม่ตรงกับ 3 คอลัมน์ static เดิมอีกต่อไป (เช่น "เรื่องราวของเรา"
+> ที่มีเมนูย่อย history/vision-mission/awards/sustainability จะกลายเป็นคอลัมน์ของตัวเอง แทนที่จะเป็นแค่ลิงก์
+> เดียว "เกี่ยวกับเรา" ในคอลัมน์ "บริษัท" แบบเดิม) ตรงตามที่ผู้ใช้ขอให้ footer "รองรับการเปลี่ยนแปลงอ้างอิง
+> ตามการจัดการเมนู" — **แก้ CSS `.site-footer__top` จาก Grid (`grid-template-columns` คงที่ `repeat(4, 1fr)`)
+> เป็น Flexbox + `flex-wrap`** ใน `style.css` เพราะจำนวนคอลัมน์ตอนนี้ไดนามิกไม่ใช่ค่าคงที่ 4 อีกต่อไป (grid
+> แบบเดิมไม่ wrap คอลัมน์ส่วนเกินไปแถวใหม่ให้เอง จะเบียดแคบลงเรื่อยๆ ในแถวเดียวถ้าคอลัมน์เกิน 4 เช่นตอนกลุ่ม
+> "บริษัท" ถูกแบ่ง 2 คอลัมน์) ปรับ media query ที่เคย set `grid-template-columns` คงที่ให้เป็นการ set
+> `flex-basis` ของ `.site-footer__brand`/`.site-footer__column` แทน (ยืนยันว่ามี 2 บล็อกซ้ำกันเดิมสำหรับทั้ง
+> breakpoint 1100px และ 767px ในไฟล์ — comment ผิวเผินว่าเป็นคนละ section "Responsive: Tablet"/"Responsive:
+> Mobile" แต่จริงๆ ชนกัน บล็อกที่มาทีหลังใน source order เป็นตัวที่มีผลจริงตาม CSS cascade — แก้ทั้ง 2 บล็อก
+> ให้ตรงกัน ไม่ทิ้งบล็อกไหนไว้ขัดแย้งกัน) — เพิ่ม `id="siteFooterTop"` + `<script src="footer-render.js">`
+> (ต่อจาก `social-render.js`) ในทุกหน้า root ทั้ง 28 ไฟล์ (markup footer เหมือนกันเป๊ะทุกไฟล์ ยืนยันด้วย grep
+> ก่อนแก้แบบเดียวกับตอนทำ Footer > Social ก่อนหน้านี้) — ⚠️ ยังไม่ได้ทดสอบกับ Supabase จริง (ไม่มี session
+> login ในสภาพแวดล้อมนี้) แต่ตรวจสอบ syntax ผ่าน `node --check` + นับ id/script tag ซ้ำผ่าน grep ยืนยันว่าครบ
+> 1 ต่อไฟล์จริงทั้ง 28 ไฟล์ + ตรวจสอบ CSS brace balance หลังแก้แล้ว
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **แก้บั๊ก: ข้อความ "อัปเดตล่าสุด: ..." บนหน้า `privacy-policy.html`/
+> `terms-of-use.html` ก็ไม่เปลี่ยนตามภาษาที่เลือกเช่นกัน** (บั๊กเดียวกับ title ที่เพิ่งแก้ไปก่อนหน้านี้ในวัน
+> เดียวกัน — ผู้ใช้เจอเพิ่มหลัง deploy จริงแล้วลองสลับภาษาดู) — สาเหตุเดียวกันเป๊ะ: `legal-render.js`'s
+> `init()` ตั้งแค่ `metaEl.textContent = 'อัปเดตล่าสุด: ' + formatThaiDateTime(...)` เฉยๆ ไม่เคยตั้ง `data-en`
+> คู่กันเลย ทำให้ `i18n.js` ไม่มีอะไรให้สลับ (element นี้เพิ่งถูกสร้างด้วย JS ล้วนๆ ไม่มี static markup เดิม
+> ที่เคยมี `data-en` ติดมาให้แต่แรกด้วย ต่างจากบั๊ก title ตรงที่คราวนี้เป็นข้อความไดนามิกที่ต้อง**สร้าง** เนื้อหา
+> ภาษาอังกฤษขึ้นใหม่เองด้วย ไม่ใช่แค่ตั้ง attribute จากคอลัมน์ DB ที่มีอยู่แล้วเหมือน title_en) — แก้โดยเพิ่ม
+> `formatEnglishDateTime()` ใหม่ (`toLocaleDateString('en-US', ...)`/`toLocaleTimeString('en-US', ...)` คู่กับ
+> `formatThaiDateTime()` เดิม) แล้วตั้ง `metaEl.setAttribute('data-en', 'Last updated: ' + formatEnglishDateTime(...))`
+> คู่กับ `textContent` ภาษาไทยเสมอ — รูปแบบวันที่/เวลาที่แสดงจะต่างกันไปตาม locale ของแต่ละภาษาตามธรรมชาติ
+> (เช่น "10 สิงหาคม 2569 เวลา 17:46 น." ↔ "August 10, 2026 at 05:46 PM") ไม่ใช่แค่แปลคำ "อัปเดตล่าสุด" →
+> "Last updated" เฉยๆ
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **แก้บั๊ก: กล่อง Rich Text Editor (Quill) ทุกจุดในระบบ มองไม่เห็นเส้นขอบด้านบน**
+> (ผู้ใช้ส่ง screenshot มาเทียบ — ต้องการให้เห็นกรอบรอบกล่องทั้งก้อน toolbar+เนื้อหา ตามภาพตัวอย่าง) — สาเหตุ:
+> `<link>` ของ `quill.snow.css` (CDN, มี default `border: 1px solid #ccc` ติดมากับ `.ql-toolbar.ql-snow`/
+> `.ql-container.ql-snow` เองอยู่แล้ว) ถูกวางไว้**หลัง** `<link>` ของ `cms/style.css` ในทั้ง 4 ไฟล์ที่ใช้ Quill
+> (`legal-editor.html`/`page-editor.html`/`products.html`/`news-articles.html`) — selector ที่ `cms/
+> style.css` ใช้ override (`.cms-rich-editor .ql-toolbar`/`.cms-rich-editor .ql-container` — ตั้งใจลบ border
+> ของ Quill เองออกแล้วให้ใช้ border ของ `.cms-rich-editor` wrapper รอบนอกแทน) มี specificity เท่ากันเป๊ะกับ
+> selector ของ Quill เอง (`.ql-toolbar.ql-snow`/`.ql-container.ql-snow` — สองคลาสเหมือนกัน) เวลา specificity
+> เท่ากัน CSS จะให้ rule ที่โหลด**ทีหลัง**ชนะ — เพราะ `quill.snow.css` โหลดทีหลัง `cms/style.css` เสมอ (ลำดับ
+> `<link>` เดิมผิด) border ของ Quill เองเลยชนะทุกครั้ง ทำให้ toolbar/container มี border ของตัวเองซ้อนกับ
+> border ของ `.cms-rich-editor` wrapper รอบนอกอีกที ผลลัพธ์ที่เห็นจริงคือกรอบด้านบนดูเพี้ยน/มองไม่เห็นเป็น
+> เส้นเดียวกันตามที่ตั้งใจ — แก้โดย**สลับลำดับ `<link>` ให้ `quill.snow.css` โหลดก่อน `cms/style.css` เสมอ**
+> ทั้ง 4 ไฟล์ (ปกติเป็น convention มาตรฐานอยู่แล้ว: CSS ของ component ของเราเองควรโหลดทีหลัง CSS ของ
+> library เพื่อให้ override ได้แน่นอนไม่ต้องพึ่งการไล่ specificity/`!important`) — ไม่ได้แก้ CSS rule ใดๆ ใน
+> `cms/style.css` เลย (ของเดิมถูกต้องอยู่แล้ว แค่ไม่เคยมีผลจริงเพราะลำดับโหลดผิด)
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **แก้บั๊กสำคัญ: `cms/social-links.html` บันทึกไม่ได้เลย ขึ้น error "กรุณากรอกชื่อ
+> ช่องทาง/อัปโหลดไอคอน/ระบุลิงก์ให้ครบ" ทั้งที่กรอก/อัปโหลดครบแล้วจริง** (ผู้ใช้รายงานพร้อม screenshot ยืนยัน
+> ว่าอัปโหลดไอคอน TikTok สำเร็จ พรีวิวขึ้นถูกต้อง กรอกชื่อ+ลิงก์ครบ แต่กด "บันทึก" แล้ว validation ยัง block
+> อยู่) — สาเหตุ: `buildCard()` เดิม sync `item.icon_url` ผ่าน `urlInput.addEventListener('input', ...)`
+> เท่านั้น แต่ `cmsBindImageUpload()`'s `handleFile()` (ใน `cms/upload.js`) ตั้งค่า `urlInput.value = result.
+> url` **ตรงๆ ผ่าน JS** หลังอัปโหลดสำเร็จ — การ set `.value` ผ่าน JS แบบนี้**ไม่ trigger `input` event ตาม
+> ธรรมชาติของ browser เลย** (ต่างจากตอนผู้ใช้พิมพ์เองที่ event จะ fire ปกติ) ทำให้ `item.icon_url` ไม่เคยถูก
+> อัปเดตจริงหลังอัปโหลด ค้างเป็นค่าว่างตลอด (พรีวิวที่เห็นถูกต้องเพราะ `cmsBindImageUpload()`'s internal
+> `updatePreview()` อ่านจาก `urlInput.value` โดยตรง ไม่ได้พึ่ง `item.icon_url` เลย — เป็นคนละ state กัน) —
+> เทียบกับจุดอื่นที่ใช้ `cmsBindImageUpload()` เหมือนกัน (เช่น `cms/banners.js`) พบว่าทุกจุดอ่านค่า `.value`
+> จาก input ตรงๆ ตอน submit เสมอ ไม่เคยพึ่ง state แยกที่ sync ผ่าน event แบบที่ `social-links.js` ทำ (จุดนี้
+> เป็นจุดเดียวในระบบที่ทำแบบนี้ เพราะโครงสร้างเป็น list หลายแถวที่ rebuild DOM ทุกครั้งที่ render() ต่างจาก
+> ฟอร์มเดี่ยวที่จุดอื่นใช้) — แก้โดยเก็บ reference ของ `urlInput` ไว้ที่ `item._urlInputEl` แทนตอน
+> `buildCard()` แล้วเพิ่ม `syncIconUrls()` ใหม่ อ่านค่า `.value` จาก DOM ตรงๆ ของทุกแถว **ก่อน** validate/
+> save ทุกครั้งใน `saveAll()` (ครอบคลุมทั้งเคสอัปโหลดใหม่และเคสกดปุ่ม "✕" ลบไอคอนที่ set `.value = ''` แบบ
+> เดียวกัน) — `item._urlInputEl` เป็น field ภายในเท่านั้น ไม่หลุดเข้า payload ที่ยิงไป Supabase เพราะ `patch`
+> object ระบุ field ที่จะเขียนไว้ชัดเจนอยู่แล้ว (`label`/`icon_url`/`link_url`/`is_active`/`sort_order`)
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **3 การแก้ไขเล็ก**: (1) **แก้บั๊ก: หัวข้อ (title) ของหน้า `privacy-policy.html`/
+> `terms-of-use.html` ไม่เปลี่ยนตามภาษาที่เลือก** — สาเหตุ: `legal-render.js` เดิม set แค่ `titleEl.
+> textContent = data.title_th` เฉยๆ ไม่เคยตั้ง `data-en` attribute ให้เลย (ทั้งที่ตัว markup เดิมของ
+> `<h1 id="legalPageTitle">` ก็ไม่เคยมี `data-en` ติดมาด้วยตั้งแต่แรกเช่นกัน) — `i18n.js`'s `applyTextSwap()`
+> เช็คแค่ element ที่มี `data-en`/`data-th` attribute อย่างใดอย่างหนึ่งเท่านั้น ไม่มีเลยทั้งคู่เลยไม่ทำอะไร
+> ต่อให้สลับภาษากี่ครั้งก็ตาม — แก้โดยเพิ่ม `titleEl.setAttribute('data-en', data.title_en)` (มาจากคอลัมน์
+> `title_en` ที่ fetch มาอยู่แล้วแต่ไม่เคยเอามาใช้กับ title element) คู่กับ `textContent` เสมอ ก่อน dispatch
+> `navRendered` (2) **มาตรฐานปุ่ม "บันทึก" ให้เป็นคำเดียวกันทั้งระบบ CMS** — ปุ่มฟอร์ม add/edit ในทุก modal
+> (เมนู/แบนเนอร์/สินค้า/บทความ/หมวดหมู่/แอดมิน/เพจ/section) เป็น "บันทึก" อยู่แล้วเดิม ไม่ต้องแก้ — จุดที่ต้อง
+> แก้มีแค่ 2 จุด: `cms/page-editor.html`/`.js`'s sticky-bottombar save button และ `cms/social-links.html`/
+> `.js`'s save button (ทั้งคู่เพิ่งสร้างก่อนหน้านี้ในวันเดียวกันด้วยข้อความ "บันทึกการเปลี่ยนแปลงทั้งหมด")
+> เปลี่ยนเป็น "บันทึก" ทั้งคู่ให้ตรงกับปุ่มอื่นทั้งระบบ — **ไม่ได้แตะปุ่ม "ตั้งรหัสผ่านใหม่"** ของ
+> `cms/admins.html`/`app.js` (ปุ่ม action เฉพาะทาง ไม่ใช่ "บันทึกข้อมูลทั่วไป") (3) **Toast แสดงข้อความ
+> "บันทึกข้อมูลสำเร็จ" เหมือนกันทุกจุดที่กดปุ่มบันทึกสำเร็จ + ย้ายตำแหน่ง toast จากมุมขวาล่างไปมุมขวาบน** —
+> เดิมแต่ละโมดูล (เมนู/แบนเนอร์/สินค้า/บทความ/หมวดหมู่/แอดมิน/เพจ/section) มีข้อความ toast ของตัวเองไม่เหมือน
+> กัน (เช่น "เพิ่มสินค้าเรียบร้อยแล้ว"/"แก้ไขเมนูเรียบร้อยแล้ว") รวม 13 จุดทั่วระบบ — unify เป็น
+> "บันทึกข้อมูลสำเร็จ" ข้อความเดียวทั้งหมด (ยืนยันคำนี้กับผู้ใช้ก่อนแก้เพราะข้อความที่ขอมาเดิม "บันทึกข้อมูล
+> สำหรับแสดง" ไม่สมเหตุสมผลเป็นภาษาไทย) — **ไม่ได้แตะ toast ของปุ่ม/actions อื่นที่ไม่ใช่ "บันทึก"** เช่น
+> ลบ/เปิด-ปิดใช้งาน/Export/คัดลอกรหัสผ่าน/ตั้งรหัสผ่านใหม่ (ยังคงข้อความเฉพาะทางเดิมของแต่ละ action ไว้ตามเดิม
+> เพราะผู้ใช้ระบุขอบเขตว่า "เมื่อบันทึกสำเร็จ" เท่านั้น) — ย้ายตำแหน่ง `.cms-toast` จาก `bottom:24px` เป็น
+> `top:24px` (ยังคง `right:24px` เท่าเดิม) ใน `cms/style.css` เพราะเดิมมุมขวาล่างอาจถูก sticky bottom bar
+> (ที่เพิ่งเพิ่มให้ 3 หน้าในวันเดียวกันนี้ — legal-editor/social-links/page-editor) บังหรือซ้อนทับได้ — ยัง
+> ไม่ได้ทดสอบกับ Supabase จริงเหมือนงานก่อนหน้าในวันเดียวกัน (migration ที่เกี่ยวข้องยังไม่ได้รัน) แต่ตรวจสอบ
+> syntax ผ่าน `node --check` ทุกไฟล์ที่แก้ + grep ยืนยันว่าไม่มี toast ข้อความเก่าตกค้างจุดไหนแล้ว
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **เพิ่มเมนูย่อย Footer > Social ใหม่** (ผู้ใช้ขอ) — จัดการ 2 อย่างที่แสดงอยู่เหนือ
+> ไอคอนโซเชียลใน footer ทุกหน้า: (1) "รายละเอียด" = ข้อความ 2 บรรทัดใต้โลโก้ (เดิม hardcode
+> `.site-footer__brand-text` เหมือนกันทุกไฟล์) (2) ไอคอนโซเชียลสูงสุด 6 อัน (เดิม hardcode 3 อัน FB/IG/Line
+> เหมือนกันทุกไฟล์) — **DB ใหม่** (`cms/schema-social-links.sql`, **ยังไม่ได้รัน**): ตาราง `footer_settings`
+> (singleton แถวเดียว คีย์ `key='footer'`, เก็บ `description_th`/`description_en` จำกัด 100 ตัวอักษร) +
+> ตาราง `social_links` (`label`/`icon_url`/`link_url`/`sort_order`/`is_active` — trigger
+> `check_social_link_limit()` บล็อก insert ถ้ามีครบ 6 แถวแล้ว pattern เดียวกับ `check_banner_limit()` ของ
+> banners) — seed ทั้งคู่ด้วยค่าที่ hardcode อยู่จริงตอนนี้ (ข้อความ brand เดิม + ไอคอน FB/IG/Line 3 อันเดิม
+> พร้อม URL/ลิงก์ตรงเป๊ะ) ไม่มีอะไรเปลี่ยนบนเว็บทันทีหลังรัน migration จนกว่าแอดมินจะแก้เอง —
+> **CMS หน้าใหม่** `cms/social-links.html`/`.js` (เมนู sidebar "Footer" เพิ่ม "Social" ต่อจาก "นโยบายความ
+> เป็นส่วนตัว"/"ข้อกำหนดการใช้งาน" ในทุกหน้า CMS shell ทั้ง 11 หน้ารวมตัวมันเอง) — ช่อง "รายละเอียด (TH/EN)"
+> มี `maxlength="100"` + ตัวนับอักขระ real-time — รายการไอคอนแต่ละอันมี dropzone อัปโหลดไอคอนขนาดเล็ก (reuse
+> `cmsBindImageUpload()`/`.cms-dropzone` เดิม ปรับ CSS ใหม่ `.cms-social-card__dropzone` ให้เป็นกล่องสี่เหลี่ยม
+> 84×84px แทนกล่องแบนเนอร์ใหญ่) พร้อม hint "แนะนำขนาดไอคอน 64×64px (สัดส่วน 1:1) พื้นหลังโปร่งใส", ช่องชื่อ
+> ช่องทาง, ช่องลิงก์, toggle เปิด/ปิดใช้งาน, ปุ่มลบ, ปุ่ม ▲/▼ จัดลำดับ (ไม่ใช้ drag — ปุ่มลูกศรเหมือน
+> `cms/page-editor.js`'s section list) — ปุ่ม "+ เพิ่มช่องทาง" ซ่อนอัตโนมัติเมื่อครบ 6 แถว — **บันทึกทั้งหมด
+> พร้อมกันทีเดียว** ผ่านปุ่มเดียวที่ sticky bottom bar (ทั้ง `footer_settings` + `social_links` ทุกแถว) แทนที่
+> จะ save แยกทีละฟิลด์: ลบรายการที่ถูกกดลบไว้ก่อนเสมอ (กันชนโควตา trigger ตอน insert รายการใหม่ถ้ามีครบ 6 อยู่
+> แล้ว) แล้วค่อย update รายการเดิม/insert รายการใหม่ตามลำดับบนหน้าจอ toast "บันทึกข้อมูลสำเร็จ" เมื่อเสร็จ
+> (ตาม convention เดียวกับ `cms/legal-editor.html` ที่เพิ่งทำไปก่อนหน้านี้ในวันเดียวกัน) — validate ก่อนบันทึก
+> ว่าทุกแถวต้องมีครบทั้งชื่อ/ไอคอน/ลิงก์ ไม่งั้น toast error บล็อกการบันทึกทั้งหมดไว้ก่อน —
+> **ฝั่งเว็บหลัก**: ไฟล์ใหม่ `social-render.js` (pattern เดียวกับ `nav-render.js` — ถ้าดึงไม่สำเร็จคง static
+> fallback เดิมไว้ ไม่พังทั้งหน้า) ดึง `footer_settings`/`social_links` (active เท่านั้น เรียงตาม
+> `sort_order`) มาแทนที่ `#siteFooterBrandText`/`#siteFooterSocial` ที่เพิ่มเข้าไปใน **footer ของทุกหน้า root
+> ทั้ง 28 ไฟล์** (เพิ่ม id 2 ตัวนี้ + `<script src="social-render.js">` ต่อจาก `nav-render.js` ทุกไฟล์ ด้วย
+> สคริปต์แทนที่ string ตรงๆ เพราะ markup footer เหมือนกันเป๊ะทุกไฟล์อยู่แล้ว ยืนยันด้วย grep ก่อนเริ่มว่า
+> เหมือนกันจริง 100% ทั้ง 28 ไฟล์) — dispatch `navRendered` หลัง render เสร็จเหมือนโมดูลอื่น — ⚠️ ยังไม่ได้
+> ทดสอบกับ Supabase จริง (migration ยังไม่ได้รัน เหตุผลเดียวกับฟีเจอร์ Footer/legal ก่อนหน้านี้) แต่ตรวจสอบ
+> syntax ผ่าน `node --check` ทุกไฟล์ + นับ id/script tag ซ้ำผ่าน grep ยืนยันว่าครบ 1 ต่อไฟล์จริงทั้ง 28 ไฟล์
+> แล้ว
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **แยกเมนูจัดการ Footer เป็น 2 เมนูอิสระ + ปุ่มบันทึกย้ายไป sticky bottom bar +
+> แก้บั๊กอีเมลผู้แก้ไขในประวัติเวอร์ชัน** (ผู้ใช้ขอปรับจากรอบก่อนหน้าในวันเดียวกัน — ดู "อัปเดตก่อนหน้า" ถัดไป
+> ด้านล่างสำหรับพื้นฐานเดิมของระบบนี้) — **สิ่งที่เปลี่ยน**:
+> (1) **ยกเลิกหน้า `cms/legal-pages.html`/`.js` เดิม** (การ์ด 2 อันในหน้าเดียว) **แทนที่ด้วย
+> `cms/legal-editor.html`/`.js` หน้าเดียวใช้ซ้ำ** driven ด้วย query string `?key=privacy-policy` หรือ
+> `?key=terms-of-use` (pattern เดียวกับ `cms/page-editor.html?id=<uuid>`) — sidebar เมนูกลุ่ม "Footer" แยกเป็น
+> 2 ลิงก์อิสระแล้ว: "นโยบายความเป็นส่วนตัว" กับ "ข้อกำหนดการใช้งาน" ชี้ไปหน้าเดียวกันคนละ query (อัปเดตใน
+> sidebar ของทุกหน้า CMS shell ทั้ง 10 หน้า + ตัวมันเอง) — active state ของลิงก์ไหนถูกต้องคำนวณด้วย JS
+> (`markActiveSidebarLink()` เทียบ `data-legal-key` กับ query `key` ปัจจุบัน) เพราะเป็นไฟล์เดียวกัน hardcode
+> `is-active` แบบเดิมในนี้ไม่ได้
+> (2) **ปุ่ม "บันทึก" ย้ายไปอยู่ sticky bottom bar คงที่ด้านล่างจอ** (reuse `.cms-sticky-bottombar` เดียวกับ
+> `cms/page-editor.html` — `position:sticky; bottom:0` ภายใน `.cms-main` ที่ไม่มี scroll container ของตัวเอง
+> ทำให้เห็นผลเป็นแถบคงที่ติดล่างจอเสมอไม่ว่าจะเลื่อนเนื้อหาแค่ไหน ตรงตามที่ผู้ใช้ขอ "แสดงแบบ fix") พร้อมข้อความ
+> "อัปเดตล่าสุด..." อยู่ในแถบเดียวกันด้วย (มุมซ้าย)
+> (3) **บันทึกสำเร็จแสดง toast "บันทึกข้อมูลสำเร็จ"** ผ่าน `window.cmsToast()` เดิม (ของเดิมมี toast อยู่แล้ว
+> แค่ปรับข้อความให้ตรงตามที่ผู้ใช้ระบุเป๊ะๆ)
+> (4) **แก้บั๊กอีเมลผู้แก้ไขแสดงเป็น "ไม่ทราบผู้แก้ไข"** — เดิมหลัง `update()` เรียก `.select().single()` เพื่อ
+> เอาแถวที่เพิ่งอัปเดตกลับมาแสดงผล ถ้า round-trip นี้คืนค่าไม่ตรง/ช้า (หรือ error แบบเงียบ) อีเมลที่เพิ่งบันทึก
+> จะไม่ถูกนำมาแสดง ทำให้ยังเห็นค่าเดิม (ว่าง = "ไม่ทราบผู้แก้ไข" สำหรับข้อมูล seed ที่ไม่เคยมีคน login มาแก้)
+> ค้างอยู่ — **แก้โดยเลิกพึ่ง round-trip** ใช้ค่าที่เพิ่งเขียนไป (`patch` object) มา merge เข้ากับ `row` ในตัว
+> แปรผันฝั่ง client ตรงๆ (`row = Object.assign({}, row, patch)`) แสดงผลจากค่านั้นทันที ไม่ต้องรอ/พึ่งผลลัพธ์จาก
+> server อีก **และ**ดึง `session.user.email` สดๆ ใหม่ทุกครั้งตอนกดบันทึก (ไม่ใช้ค่าที่ cache ไว้ตอนโหลดหน้า)
+> กันเคสเปิดหน้าค้างไว้นานแล้ว session ถูกต่ออายุ/เปลี่ยน — ถ้ายังไม่มีอีเมลใน session เลยจะ toast แจ้งเตือนให้
+> ล็อกอินใหม่แทนที่จะปล่อยให้บันทึกด้วยอีเมลว่าง — ⚠️ ยังไม่ได้ทดสอบกับ Supabase จริง (migration ยังไม่ได้รัน)
+> แต่ logic ใหม่ตัดปัจจัยเรื่อง RLS SELECT-after-UPDATE ที่อาจเป็นสาเหตุเดิมออกไปได้ทั้งหมด เพราะไม่ต้อง select
+> กลับมาอีกแล้ว
+>
+> อัปเดตก่อนหน้าในวันเดียวกัน (2026-08-10) — **เพิ่มระบบจัดการ Footer (นโยบายความเป็นส่วนตัว/ข้อกำหนดการใช้งาน) ใหม่**
+> (ผู้ใช้ขอ — เดิมลิงก์ 2 อันนี้ที่ท้ายเว็บทุกหน้าเป็น `href="#"` ค้างไว้เฉยๆ ไม่เคยมีหน้าจริงรองรับเลย) —
+> เพิ่มตาราง Supabase ใหม่ 2 ตาราง (`cms/schema-legal-pages.sql`, **ยังไม่ได้รัน**): `legal_pages` (1 แถวต่อ
+> 1 หน้า เก็บ `content_th`/`content_en`/`version`/`updated_at`/`updated_by_email` ปัจจุบัน) +
+> `legal_page_versions` (append-only, insert snapshot ของเนื้อหา "ก่อนแก้ไข" ทุกครั้งที่กดบันทึกใน CMS —
+> ตอบโจทย์ที่ผู้ใช้ขอให้เก็บเป็น "Version ที่แก้ไข") — CMS หน้าใหม่ `cms/legal-pages.html`/`.js` (เมนู sidebar
+> กลุ่มใหม่ "Footer" > "นโยบาย/ข้อกำหนด" เพิ่มลิงก์ในทุกหน้า CMS shell ที่มีอยู่แล้วทั้ง 10 หน้า) — แต่ละหน้า
+> มี Quill rich text editor (TH/EN, reuse `CMS_QUILL_TOOLBAR`/`CMS_QUILL_FORMATS` กลางเดียวกับจุดอื่น) พร้อม
+> ข้อความ "อัปเดตล่าสุด: วันที่ เวลา โดย &lt;อีเมลแอดมิน&gt; • เวอร์ชัน N" และปุ่ม "ดูประวัติเวอร์ชัน" เปิด modal
+> แสดงรายการเวอร์ชันเก่าทั้งหมด (read-only, ไม่มีปุ่ม restore — ผู้ใช้ขอแค่เก็บ+แสดงประวัติ ไม่ได้ขอกู้คืน) —
+> ฝั่งเว็บหลัก: ไฟล์ใหม่ `privacy-policy.html`/`terms-of-use.html` (เพจ static ล้วน โครงเดียวกับ `404.html` —
+> ไม่ผ่าน Page Management/`page_sections` เพราะเป็นระบบแยกต่างหาก) + `legal-render.js` (โมดูลกลาง ดึงเนื้อหา
+> จาก `legal_pages` มา render, sanitize ผ่าน DOMPurify, redirect ไป `404.html` ถ้าหา `page_key` ไม่เจอ — pattern
+> เดียวกับ `page-render.js`) เนื้อหา rich text render เฉพาะภาษาไทยเท่านั้น (ข้อจำกัดที่ตั้งใจแบบเดียวกับ
+> `page_sections` — คอลัมน์ `content_en` เก็บไว้รอวันที่ระบบ i18n รองรับ dynamic content จริง) — แก้ลิงก์
+> `href="#" data-en="Privacy Policy"`/`href="#" data-en="Terms of Use"` ที่ footer ของทุกหน้า root ที่มีอยู่
+> (26 ไฟล์) ให้ชี้ไป `privacy-policy.html`/`terms-of-use.html` จริงแล้ว — เพิ่มชื่อไฟล์ใหม่ทั้งสองเข้า
+> `KNOWN_HTML_FILES` ใน `cms/pages.js` ด้วย (กันชนกับ slug ของเพจ standalone ในอนาคต ตามกฎที่ CLAUDE.md เตือนไว้) —
+> ⚠️ **ยังไม่ได้รัน `cms/schema-legal-pages.sql`** — ทดสอบผ่าน browser แล้วว่า `privacy-policy.html` โหลด/แสดง
+> error ใน console อย่างถูกต้องเมื่อตาราง `legal_pages` ยังไม่มีอยู่จริง (ยืนยัน error message "Could not find
+> the table 'public.legal_pages'") แต่ **ไม่สามารถทดสอบ end-to-end เต็มรูปแบบผ่าน `file://` ในรอบนี้ได้**
+> (ทั้งเรื่อง Supabase RLS ที่ต้อง login จริง และ preview tool ที่ใช้ทดสอบเรนเดอร์ `file://` ของโปรเจกต์นี้แบบ
+> static snapshot ไม่รัน JS จริงให้เห็นผลลัพธ์สุด — ต้องรัน migration แล้วทดสอบผ่านเว็บที่ deploy จริงอีกที)
+>
+> อัปเดตก่อนหน้า (2026-08-06) — **แก้บั๊ก: ปุ่ม "</>" ของ `cms/page-editor.html` แก้โค้ด HTML แล้วกลับ WYSIWYG
 > ค่าที่พิมพ์ไว้หายไม่บันทึกให้** (ผู้ใช้รายงานทันทีหลังเพิ่มฟีเจอร์นี้) — **สาเหตุ**: ตอนกดกลับ WYSIWYG โค้ด
 > จะถูก parse เข้า Quill ผ่าน `quill.clipboard.dangerouslyPasteHTML()` ซึ่งจำกัดไว้แค่ `CMS_QUILL_FORMATS`
 > (header/bold/italic/underline/color/align/list/link/image) เท่านั้น — ทดสอบแล้วว่า `<div>`/`<table>`/
@@ -2019,6 +2199,8 @@ role/ชั้นสิทธิ์ย่อย จึงยังไม่จ�
 | `cms/seed-career-sections.sql` | ✅ รันแล้ว | ยืนยันเพจ `career` มี 4 section จริงตรงตาม anchor_id ที่ seed ไว้ (`career-intro`/`career-benefits`/`career-features`/`apply-now`) |
 | `cms/schema-pages-v9.sql` | ❌ **ยังไม่ได้รัน** | เพิ่ม `page_sections.button_style`/`button_color` (ปุ่มเลือกรูปแบบ Text Link/Primary/Primary Outline + สีเองได้) และ `image_links text[]` (ใส่ลิงก์แยกต่อรูปในกริดของ section) — **ต้องรันก่อนถึงจะบันทึกฟีเจอร์ 2 อย่างนี้ผ่าน `cms/page-editor.html` ได้จริง** ไม่งั้น Supabase จะ error "column does not exist" ตอนกด "บันทึก" |
 | `cms/seed-newsroom-page.sql` | ❌ **ยังไม่ได้รัน** | seed แถว `pages` (`page_key='newsroom'`) ให้ newsroom.html เข้า Page Management แบบ additive + backfill proxy section ให้ KV banner ที่มีอยู่แล้วของหน้านี้ — **ต้องรันก่อน KV Banner ของ newsroom.html จะแสดงผลได้เลย** (ดูหัวข้อ "หน้า newsroom.html" ใต้ "ระบบจัดการเพจ") |
+| `cms/schema-legal-pages.sql` | ❌ **ยังไม่ได้รัน** | สร้างตาราง `legal_pages`/`legal_page_versions` (ระบบจัดการ Footer ใหม่ 2026-08-10) พร้อม seed เนื้อหา placeholder 2 แถว (privacy-policy/terms-of-use) — **ต้องรันก่อนถึงจะเปิด `cms/legal-editor.html` หรือ `privacy-policy.html`/`terms-of-use.html` ได้เลย** (ไม่งั้น Supabase จะ error "table not found" ทันที) |
+| `cms/schema-social-links.sql` | ❌ **ยังไม่ได้รัน** | สร้างตาราง `footer_settings`/`social_links` (Footer > Social ใหม่ 2026-08-10) พร้อม seed ข้อความ+ไอคอน 3 อันเดิมที่ hardcode อยู่ในเว็บตอนนี้ — **ต้องรันก่อนถึงจะเปิด `cms/social-links.html` ได้เลย** (ไม่งั้น error "table not found") และก่อนที่ `social-render.js` จะดึงข้อมูลไปแสดงผลจริงบน footer ของทุกหน้า (ถ้ายังไม่รัน จะ error เงียบๆ ใน console แล้วคง static fallback เดิมไว้ ไม่พังหน้า) |
 
 ## สิ่งที่ต้องทำต่อ (Next steps เรียงตามความสำคัญ)
 
@@ -2082,6 +2264,17 @@ role/ชั้นสิทธิ์ย่อย จึงยังไม่จ�
     ฝั่ง `newsroom.html` (เพิ่ม `page-render.js`+`#pageSectionsContainer`) แก้เสร็จแล้ว แต่ต้องมีแถวใน `pages`
     table ให้ `ensureKvProxySection()` หาเจอด้วย ไม่งั้นจะยังคง silently fail เหมือนเดิม — ดูหัวข้อ "หน้า
     newsroom.html" ใต้ "ระบบจัดการเพจ" ด้านบน
+
+0g. **รัน `cms/schema-legal-pages.sql` ใน Supabase SQL Editor** (งานใหม่ล่าสุด 2026-08-10) — จำเป็นก่อนที่
+    หน้า "จัดการ Footer" ใน CMS (`cms/legal-editor.html`) และหน้าเว็บจริง `privacy-policy.html`/
+    `terms-of-use.html` จะใช้งานได้เลย (ตาราง `legal_pages`/`legal_page_versions` ยังไม่มีอยู่จริงจนกว่าจะรัน)
+    — ดูรายละเอียดเต็มที่บันทึกอัปเดต 2026-08-10 ด้านบนสุดของหมวดนี้
+
+0h. **รัน `cms/schema-social-links.sql` ใน Supabase SQL Editor** (งานใหม่ล่าสุด 2026-08-10) — จำเป็นก่อนที่
+    หน้า "Footer > Social" ใน CMS (`cms/social-links.html`) จะใช้งานได้ และก่อนที่ข้อความใต้โลโก้/ไอคอน
+    โซเชียลใน footer ของทุกหน้าเว็บจะดึงจาก Supabase จริง (ตอนนี้ `social-render.js` หาไม่เจอตาราง
+    `footer_settings`/`social_links` จะ error เงียบๆ ใน console แล้วคง static fallback เดิมไว้เฉยๆ) —
+    ดูรายละเอียดเต็มที่บันทึกอัปเดต 2026-08-10 ด้านบนสุดของหมวดนี้
 
 1. **รัน `cms/schema-pages-v9.sql` ใน Supabase SQL Editor** — งานค้างที่สำคัญที่สุดตอนนี้ (แทนที่ข้อ
    v2-v8 เดิมที่ยืนยันแล้วว่ารันไปหมดแล้วจริง — ดูตาราง SQL migrations ด้านบน) เพิ่ม `button_style`/

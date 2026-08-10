@@ -367,7 +367,7 @@
       return;
     }
 
-    window.cmsToast(editingId ? 'แก้ไขบทความเรียบร้อยแล้ว' : 'เพิ่มบทความเรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

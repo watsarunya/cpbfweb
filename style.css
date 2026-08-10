@@ -837,14 +837,21 @@ section{ position:relative; margin:0; }
   color: var(--footer-text);
 }
 
+/* ⚠️ เปลี่ยนจาก CSS Grid (grid-template-columns คงที่ repeat(4, 1fr)) เป็น flexbox + wrap แทน (2026-08-10)
+   เพราะจำนวนคอลัมน์ตอนนี้ไดนามิกตามเมนู (footer-render.js ดึงจาก menu_items จริง — เมนูหลักที่มีเมนูย่อยแยก
+   เป็นคอลัมน์ของตัวเอง ส่วนที่ไม่มีเมนูย่อยรวมกันเป็นคอลัมน์ "บริษัท" แบ่งคอลัมน์ใหม่ทุก 5 รายการ) จำนวนคอลัมน์
+   จริงเปลี่ยนได้ตลอดเวลาที่แอดมินแก้เมนู ไม่ใช่ค่าคงที่ 4 อีกต่อไป — grid แบบเดิมไม่ wrap คอลัมน์ส่วนเกินไปแถว
+   ใหม่ให้เอง (จะเบียดแคบลงเรื่อยๆ ในแถวเดียว) ส่วน flexbox + wrap จัดการเรื่องนี้ให้อัตโนมัติทุกจำนวนคอลัมน์ */
 .site-footer__top {
-  display: grid;
-  grid-template-columns: 1.4fr repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 32px;
   padding: 20px 30px;
 }
 
 .site-footer__brand {
+  flex: 1 1 260px;
+  max-width: 320px;
   padding-right: 16px;
 }
 
@@ -882,8 +889,8 @@ section{ position:relative; margin:0; }
 }
 
 .site-footer__social-icon img {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   object-fit: contain;
 }
 
@@ -902,6 +909,8 @@ section{ position:relative; margin:0; }
 .site-footer__column {
   display: flex;
   flex-direction: column;
+  flex: 1 1 140px;
+  min-width: 140px;
 }
 
 .site-footer__column a {
@@ -948,12 +957,9 @@ section{ position:relative; margin:0; }
 }
 
 @media (max-width: 1100px) {
-  .site-footer__top {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .site-footer__brand {
-    grid-column: 1 / -1;
+    flex-basis: 100%;
+    max-width: none;
     padding-right: 0;
     margin-bottom: 12px;
   }
@@ -976,25 +982,18 @@ section{ position:relative; margin:0; }
   }
 
   .site-footer__top {
-    grid-template-columns: repeat(2, 1fr);
     gap: 28px;
     padding: 20px;
   }
 
   .site-footer__brand {
-    grid-column: 1 / -1;
+    flex-basis: 100%;
   }
 
   .site-footer__bottom {
     flex-direction: column;
     align-items: flex-start;
     padding: 20px 20px 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .site-footer__top {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1019,10 +1018,6 @@ button:focus-visible {
 @media (max-width: 1100px) {
   .news-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .site-footer__top {
-    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -1056,8 +1051,11 @@ button:focus-visible {
   }
 
   .site-footer__top {
-    grid-template-columns: 1fr;
     gap: 32px;
+  }
+
+  .site-footer__column {
+    flex-basis: 100%;
   }
 
   .site-footer__bottom {
@@ -5636,13 +5634,20 @@ button:focus-visible {
       margin: 10px auto;
     }
 
-        .vision-left h2 {
-            font-size: 2.2rem !important;
-        }
+    .vision-left h2 {
+       font-size: 2.2rem !important;
+    }
 
-        .vision-left p {
-            max-width: 100% !important;
-        }
+    .vision-left p {
+       max-width: 100% !important;
+    }
+    .sustain-mb {
+      grid-template-columns: 1.4fr 1.4fr !important;
+      margin-top: 100px;
+    }
+    .award-mb {
+      width: 100% !important;
+    }
 
 }
 

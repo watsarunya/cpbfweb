@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>หมวดหมู่บทความ — CP B&amp;F CMS</title>
+<title>จัดการ Social — CP B&amp;F CMS</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -55,7 +55,7 @@
         </span>
         <span class="cms-nav__label">รายการบทความ</span>
       </a>
-      <a href="news-categories.html" class="cms-nav__item cms-nav__item--sub is-active">
+      <a href="news-categories.html" class="cms-nav__item cms-nav__item--sub">
         <span class="cms-nav__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
         </span>
@@ -81,7 +81,7 @@
         </span>
         <span class="cms-nav__label">ข้อกำหนดการใช้งาน</span>
       </a>
-      <a href="social-links.html" class="cms-nav__item cms-nav__item--sub">
+      <a href="social-links.html" class="cms-nav__item cms-nav__item--sub is-active">
         <span class="cms-nav__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><circle cx="6" cy="12" r="2.4" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="6" r="2.4" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="18" r="2.4" stroke="currentColor" stroke-width="1.6"/><path d="m8.1 10.9 6.8-3.6M8.1 13.1l6.8 3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </span>
@@ -118,94 +118,87 @@
     </header>
 
     <main class="cms-content">
-      <p class="cms-breadcrumb">CMS / <strong>หมวดหมู่บทความ</strong></p>
+      <p class="cms-breadcrumb">CMS / Footer / <strong>Social</strong></p>
+      <p class="cms-section-hint">จัดการข้อความใต้โลโก้และไอคอนโซเชียลที่แสดงท้ายเว็บทุกหน้า (Footer)</p>
 
-      <div class="cms-stats">
-        <div class="cms-stat-card">
-          <p class="cms-stat-card__label">Total Categories</p>
-          <div class="cms-stat-card__value"><span id="statTotalCategories">–</span></div>
+      <div class="cms-panel">
+        <div class="cms-toolbar">
+          <span class="cms-toolbar__label">รายละเอียด (ข้อความใต้โลโก้)</span>
         </div>
-        <div class="cms-stat-card">
-          <p class="cms-stat-card__label">Active</p>
-          <div class="cms-stat-card__value"><span id="statActiveCategories">–</span></div>
+
+        <div class="cms-field-row">
+          <div class="cms-field">
+            <label for="descriptionTh">รายละเอียด (TH) <span id="descriptionThCount">0</span>/100</label>
+            <input type="text" id="descriptionTh" maxlength="100" />
+          </div>
+          <div class="cms-field">
+            <label for="descriptionEn">รายละเอียด (EN) <span id="descriptionEnCount">0</span>/100</label>
+            <input type="text" id="descriptionEn" maxlength="100" />
+          </div>
         </div>
       </div>
 
       <div class="cms-panel">
         <div class="cms-toolbar">
-          <span class="cms-toolbar__label">รายการหมวดหมู่บทความ</span>
+          <span class="cms-toolbar__label">ไอคอนโซเชียล (<span id="socialCount">0</span>/6)</span>
           <div class="cms-toolbar__right">
-            <div class="cms-search">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              <input type="search" id="categorySearchInput" placeholder="ค้นหาหมวดหมู่..." />
-            </div>
-            <button type="button" class="cms-btn cms-btn--primary" id="addCategoryBtn">
-              <span aria-hidden="true">+</span> Add Category
+            <button type="button" class="cms-btn cms-btn--primary" id="addSocialBtn">
+              <span aria-hidden="true">+</span> เพิ่มช่องทาง
             </button>
           </div>
         </div>
 
-        <div class="cms-table-wrap">
-          <table class="cms-menu-table">
-            <thead>
-              <tr>
-                <th>ชื่อหมวดหมู่</th>
-                <th>Slug</th>
-                <th>Order</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="categoryTableBody">
-              <!-- rendered by news-categories.js -->
-            </tbody>
-          </table>
-        </div>
-        <div class="cms-empty" id="categoryEmptyState" hidden>ยังไม่มีหมวดหมู่บทความ — กด "+ Add Category" เพื่อเริ่มสร้างรายการแรก</div>
+        <div class="cms-social-list" id="socialList"></div>
+        <div class="cms-empty" id="socialEmptyState" hidden>ยังไม่มีช่องทางโซเชียล — กด "+ เพิ่มช่องทาง" เพื่อเริ่มสร้างรายการแรก</div>
       </div>
     </main>
-  </div>
-</div>
 
-<!-- Add / Edit Modal -->
-<div class="cms-modal-overlay" id="categoryModalOverlay" hidden>
-  <div class="cms-modal">
-    <div class="cms-modal__header">
-      <h2 id="categoryModalTitle">เพิ่มหมวดหมู่ใหม่</h2>
-      <button type="button" class="cms-modal__close" id="categoryModalClose" aria-label="ปิด">✕</button>
+    <div class="cms-sticky-bottombar">
+      <span class="cms-section-hint" style="margin: 0;">แก้ไขแล้วต้องกด "บันทึก" เพื่อยืนยันการเปลี่ยนแปลง</span>
+      <button type="button" class="cms-btn cms-btn--primary" id="saveAllBtn">บันทึก</button>
     </div>
-    <form id="categoryForm">
-      <div class="cms-modal__body">
-        <div class="cms-field-row">
-          <div class="cms-field">
-            <label for="fieldCategoryNameTh">ชื่อหมวดหมู่ (TH) *</label>
-            <input type="text" id="fieldCategoryNameTh" required />
-          </div>
-          <div class="cms-field">
-            <label for="fieldCategoryNameEn">ชื่อหมวดหมู่ (EN) *</label>
-            <input type="text" id="fieldCategoryNameEn" required />
-          </div>
-        </div>
-
-        <div class="cms-field">
-          <label for="fieldCategorySlug">Slug (ใช้ในลิงก์ newsroom.html?category=...) *</label>
-          <input type="text" id="fieldCategorySlug" placeholder="เช่น news" required />
-        </div>
-
-        <div class="cms-checkbox-row">
-          <input type="checkbox" id="fieldCategoryActive" checked />
-          <label for="fieldCategoryActive" style="font-weight:600; color:var(--cms-text);">เปิดใช้งาน (Active)</label>
-        </div>
-
-        <p class="cms-error-text" id="categoryFormError"></p>
-      </div>
-      <div class="cms-modal__footer">
-        <button type="button" class="cms-btn" id="categoryModalCancel">ยกเลิก</button>
-        <button type="submit" class="cms-btn cms-btn--primary" id="categoryFormSubmit">บันทึก</button>
-      </div>
-    </form>
   </div>
 </div>
+
+<!-- Template การ์ดต่อ 1 ช่องทางโซเชียล — clone ด้วย JS -->
+<template id="socialCardTemplate">
+  <div class="cms-social-card">
+    <div class="cms-social-card__reorder">
+      <button type="button" class="cms-btn cms-btn--ghost" data-action="up" title="เลื่อนขึ้น">▲</button>
+      <button type="button" class="cms-btn cms-btn--ghost" data-action="down" title="เลื่อนลง">▼</button>
+    </div>
+
+    <div class="cms-dropzone cms-social-card__dropzone" data-role="dropzone">
+      <img class="cms-dropzone__preview" alt="" />
+      <button type="button" class="cms-dropzone__remove" aria-label="ลบไอคอน">✕</button>
+      <svg class="cms-dropzone__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="cms-dropzone__title"><strong>อัปโหลดไอคอน</strong></p>
+    </div>
+    <input type="file" data-role="file-input" accept="image/*" hidden />
+    <input type="text" data-role="url-input" hidden />
+
+    <div class="cms-social-card__fields">
+      <p class="cms-section-hint" style="margin: 0 0 6px;">แนะนำขนาดไอคอน 64×64px (สัดส่วน 1:1) พื้นหลังโปร่งใส — รองรับ .png, .svg, .webp</p>
+      <div class="cms-field-row">
+        <div class="cms-field">
+          <label>ชื่อช่องทาง</label>
+          <input type="text" data-role="label-input" placeholder="เช่น Facebook, Instagram, TikTok" />
+        </div>
+        <div class="cms-field">
+          <label>ลิงก์</label>
+          <input type="text" data-role="link-input" placeholder="https://..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="cms-social-card__actions">
+      <button type="button" class="cms-toggle" data-action="toggle-active" aria-label="เปิด/ปิดใช้งาน">
+        <span class="cms-toggle__knob"></span>
+      </button>
+      <button type="button" class="cms-btn cms-btn--ghost" data-action="delete" title="ลบ">🗑️</button>
+    </div>
+  </div>
+</template>
 
 <div class="cms-toast" id="cmsToastWrap"></div>
 
@@ -213,6 +206,7 @@
 <script src="config.js"></script>
 <script src="supabase-client.js"></script>
 <script src="app.js"></script>
-<script src="news-categories.js"></script>
+<script src="upload.js"></script>
+<script src="social-links.js"></script>
 </body>
 </html>

@@ -373,14 +373,14 @@
     }
 
     btn.disabled = false;
-    btn.textContent = 'บันทึกการเปลี่ยนแปลงทั้งหมด';
+    btn.textContent = 'บันทึก';
 
     if (errors.length) {
       errorEl.textContent = errors.join(' / ');
       window.cmsToast('บันทึกไม่สำเร็จบางส่วน: ' + errors.join(' / '), 'error');
       return;
     }
-    window.cmsToast('บันทึกการเปลี่ยนแปลงทั้งหมดเรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
   }
 
   /* ===== Preview: render section จริงด้วย window.cpbfPages.buildSection (page-render.js)
@@ -1071,7 +1071,7 @@
       return;
     }
 
-    window.cmsToast(editingId ? 'แก้ไขรูปภาพเรียบร้อยแล้ว' : 'เพิ่ม Section เรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

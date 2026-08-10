@@ -310,7 +310,7 @@
       return;
     }
 
-    window.cmsToast(editingId ? 'แก้ไขหมวดหมู่เรียบร้อยแล้ว' : 'เพิ่มหมวดหมู่เรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

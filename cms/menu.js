@@ -563,7 +563,7 @@
       await autoCreatePageForMenuItem(result.data);
     }
 
-    window.cmsToast(editingId ? 'แก้ไขเมนูเรียบร้อยแล้ว' : 'เพิ่มเมนูเรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

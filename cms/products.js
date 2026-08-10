@@ -531,7 +531,7 @@
       return;
     }
 
-    window.cmsToast(editingId ? 'แก้ไขสินค้าเรียบร้อยแล้ว' : 'เพิ่มสินค้าเรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

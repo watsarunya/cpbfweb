@@ -612,7 +612,7 @@
       return;
     }
 
-    window.cmsToast(editingId ? 'แก้ไขแบนเนอร์เรียบร้อยแล้ว' : 'เพิ่มแบนเนอร์เรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await populatePageOptions(); // เพจอาจเป็นเพจใหม่ที่ยังไม่เคยอยู่ใน datalist มาก่อน
     if (currentSection === 'kv') {

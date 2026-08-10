@@ -321,7 +321,7 @@
     'contact.html', 'fix_repair.html', 'fuji_premium_water.html', 'index.html', 'jungle.html',
     'lumi.html', 'news-detail.html', 'newsroom.html', 'oem_beans.html',
     'oem_water.html', 'online_shop.html', 'our_service.html', 'our_story.html', 'product-detail.html',
-    'promo.html', 'snack_box.html', 'vending.html',
+    'privacy-policy.html', 'promo.html', 'snack_box.html', 'terms-of-use.html', 'vending.html',
   ];
 
   function checkFileExists(filename) {
@@ -426,7 +426,7 @@
       return;
     }
 
-    window.cmsToast('เพิ่มเพจเรียบร้อยแล้ว', 'success');
+    window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     closeModal();
     await loadItems();
   }

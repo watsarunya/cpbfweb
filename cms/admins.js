@@ -261,10 +261,10 @@
     await loadItems();
 
     if (!editingId) {
-      window.cmsToast('เพิ่มแอดมินเรียบร้อยแล้ว', 'success');
+      window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
       openPasswordModal(result.user.email, result.password);
     } else {
-      window.cmsToast('แก้ไขแอดมินเรียบร้อยแล้ว', 'success');
+      window.cmsToast('บันทึกข้อมูลสำเร็จ', 'success');
     }
   }
 
