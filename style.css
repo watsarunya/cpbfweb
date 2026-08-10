@@ -4036,6 +4036,20 @@ button:focus-visible {
   background-color: #000000;
 }
 
+/* ไอคอนที่ดึงมาจาก social_links จริง (จัดการผ่าน cms/social-links.html — ดู social-render.js) — ไม่มีข้อมูล
+   สีต่อแบรนด์เก็บไว้ใน DB เหมือน 4 variant สีข้างบน (ซึ่งเป็นของ hardcode เดิม) จึงใช้วงกลมเรียบขอบบางครอบรูป
+   ไอคอนที่แอดมินอัปโหลดเองแทน */
+.contact-social__icon--dynamic {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+}
+
+.contact-social__icon--dynamic img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .contact-form {
   display: flex;
   flex-direction: column;
