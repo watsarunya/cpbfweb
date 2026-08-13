@@ -1522,7 +1522,7 @@ button {
   padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 3px;
   max-height: 65vh;
   overflow-y: auto;
 }
