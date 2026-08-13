@@ -1531,7 +1531,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 20px;
+  padding: 10px;
 }
 
 /* [hidden] ของ browser เจอปัญหา specificity เท่ากับ .cms-field (ทั้งคู่ 0,1,0) แต่ .cms-field มาทีหลังใน
